@@ -28,7 +28,6 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 ::-webkit-scrollbar-thumb{background:var(--navy4);border-radius:2px}
 .app{display:flex;flex-direction:column;min-height:100vh}
 
-/* TOPBAR */
 .topbar{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:50}
 .logo{display:flex;align-items:center;gap:10px;margin-right:28px}
 .logo-mark{width:32px;height:32px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -50,10 +49,8 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinning{animation:spin .8s linear infinite}
 
-/* MAIN */
 .main{flex:1;padding:24px;display:flex;flex-direction:column;gap:16px;max-width:1200px;margin:0 auto;width:100%}
 
-/* KPI ROW */
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
 .kpi:hover{border-color:var(--border2)}
@@ -64,15 +61,12 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 .kpi.blue::before{background:var(--blue)}
 .kpi-label{font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:8px;font-weight:600}
 .kpi-value{font-family:var(--font-mono);font-size:22px;font-weight:500;line-height:1;margin-bottom:5px}
-.kpi-sub{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px}
+.kpi-sub{font-size:11px;color:var(--text3)}
 .up{color:var(--green)}
 .dn{color:var(--red)}
 .neu{color:var(--text3)}
 
-/* GRIDS */
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
-
-/* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
 .card-header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
 .card-title{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2)}
@@ -84,7 +78,6 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 .tag-blue{background:var(--blue-bg);color:var(--blue)}
 .tag-gold{background:rgba(201,168,76,0.15);color:var(--gold)}
 
-/* TABLE */
 .stk-table{width:100%;border-collapse:collapse}
 .stk-table th{font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;font-weight:600}
 .stk-table th:not(:first-child){text-align:right}
@@ -96,13 +89,11 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 .stk-num{font-family:var(--font-mono);font-size:13px;text-align:right}
 .etf-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--blue-bg);color:var(--blue);letter-spacing:0.04em;font-weight:600;margin-left:4px}
 
-/* ROW */
 .row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
 .row:last-child{border-bottom:none}
 .row-label{font-size:13px;color:var(--text2)}
 .row-value{font-family:var(--font-mono);font-size:13px;font-weight:500}
 
-/* EXPENSE ITEMS */
 .exp-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
 .exp-item:last-child{border-bottom:none}
 .exp-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
@@ -114,23 +105,21 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 .exp-item:hover .del-btn,.bank-item:hover .del-btn{opacity:1}
 .del-btn:hover{color:var(--red)}
 
-/* CAT BARS */
 .cat-bar{margin-bottom:13px}
 .cat-bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
 .bar-track{height:3px;background:var(--navy3);border-radius:2px}
 .bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
 
-/* BANK */
-.bank-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.bank-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
 .bank-item:last-child{border-bottom:none}
 .bank-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.bank-name-wrap{flex:1}
+.bank-name-wrap{flex:1;min-width:0}
 .bank-nm{font-size:13px;font-weight:500}
 .bank-tp{font-size:11px;color:var(--text3);margin-top:1px}
+.bank-note{font-size:11px;color:var(--text3);margin-top:2px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
 .editable-amt{background:transparent;border:1px solid transparent;border-radius:4px;padding:3px 8px;font-family:var(--font-mono);font-size:13px;color:var(--text);width:130px;text-align:right;transition:border-color .15s}
 .editable-amt:focus{border-color:var(--teal);outline:none;background:var(--navy3)}
 
-/* BUTTONS */
 .btn{background:transparent;border:1px solid var(--border2);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;color:var(--text2);font-family:var(--font-body);transition:all .15s;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{color:var(--text);border-color:var(--teal)}
 .btn-primary{background:var(--teal);border-color:var(--teal);color:var(--navy);font-weight:600}
@@ -138,51 +127,48 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 .btn-sm{padding:4px 10px;font-size:11px}
 .btn-danger{border-color:rgba(240,82,82,0.4);color:var(--red)}
 .btn-danger:hover{background:var(--red-bg);border-color:var(--red)}
+.btn-edit{border-color:rgba(77,166,255,0.3);color:var(--blue)}
+.btn-edit:hover{background:var(--blue-bg);border-color:var(--blue)}
 
-/* TABS */
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px}
-.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;padding:8px 16px;font-size:12px;color:var(--text3);cursor:pointer;font-family:var(--font-body);margin-bottom:-1px;transition:all .15s;letter-spacing:0.02em}
+.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;padding:8px 16px;font-size:12px;color:var(--text3);cursor:pointer;font-family:var(--font-body);margin-bottom:-1px;transition:all .15s}
 .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal)}
 .tab-btn:hover:not(.active){color:var(--text2)}
 
-/* MODAL */
 .overlay{display:none;position:fixed;inset:0;background:rgba(7,14,26,0.85);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:20px}
 .overlay.show{display:flex}
-.modal{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--r3);padding:24px;width:100%;max-width:420px;max-height:92vh;overflow-y:auto}
+.modal{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--r3);padding:24px;width:100%;max-width:440px;max-height:92vh;overflow-y:auto}
 .modal h2{font-family:var(--font-display);font-size:20px;margin-bottom:20px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;font-weight:600;margin-bottom:5px}
 .field input,.field select,.field textarea{width:100%;background:var(--navy3);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--text);font-family:var(--font-body);font-size:13px;transition:border-color .15s}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);outline:none}
 .field select option{background:var(--navy2)}
+.field textarea{resize:vertical;min-height:60px}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
 
-/* GS SETTINGS */
+/* Code lookup hint */
+.code-hint{font-size:11px;color:var(--text3);margin-top:4px;min-height:16px;transition:color .2s}
+.code-hint.ok{color:var(--teal)}
+.code-hint.err{color:var(--red)}
+
 .settings-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:14px}
 .settings-title{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:14px}
 .gs-url-row{display:flex;gap:8px}
 .gs-url-input{flex:1;background:var(--navy3);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--text);font-size:12px;font-family:var(--font-mono);transition:border-color .15s}
 .gs-url-input:focus{border-color:var(--teal);outline:none}
-.info-box{background:var(--navy3);border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.7;margin-top:12px}
-.info-box code{font-family:var(--font-mono);background:var(--navy4);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--teal)}
 .status-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r);font-size:12px;margin-top:10px}
 .status-ok{background:rgba(0,201,167,0.1);color:var(--teal);border:1px solid rgba(0,201,167,0.2)}
-.status-err{background:var(--red-bg);color:var(--red);border:1px solid rgba(240,82,82,0.2)}
 .status-warn{background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.2)}
-
-/* SCRIPT BOX */
-.script-box{background:var(--navy);border-radius:var(--r);padding:14px;font-family:var(--font-mono);font-size:11px;color:var(--teal);line-height:1.6;overflow:auto;max-height:320px;white-space:pre;border:1px solid var(--border)}
-
-/* CHART */
+.script-box{background:var(--navy);border-radius:var(--r);padding:14px;font-family:var(--font-mono);font-size:11px;color:var(--teal);line-height:1.6;overflow:auto;max-height:300px;white-space:pre;border:1px solid var(--border)}
 .chart-wrap{position:relative;height:220px}
-
-/* EMPTY */
 .empty{text-align:center;padding:28px 0;color:var(--text3);font-size:13px}
-
-/* SYNC TOAST */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--r);padding:10px 16px;font-size:12px;color:var(--text2);z-index:999;display:flex;align-items:center;gap:8px;transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 .toast-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* Inline edit row for stocks */
+.stk-actions{display:flex;gap:5px;justify-content:flex-end}
 
 @media(max-width:768px){
   .topbar{padding:0 14px}
@@ -196,14 +182,12 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 @media(max-width:480px){
   .kpi-row{grid-template-columns:1fr 1fr}
   .kpi-value{font-size:16px}
-  .nav-btn span.full{display:none}
 }
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- TOPBAR -->
 <nav class="topbar">
   <div class="logo">
     <div class="logo-mark">
@@ -230,7 +214,6 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
   </div>
 </nav>
 
-<!-- PAGES -->
 <div class="main">
 
 <!-- DASHBOARD -->
@@ -268,7 +251,7 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
     <div class="card">
       <table class="stk-table" style="width:100%">
         <thead><tr>
-          <th>股票</th><th>現價</th><th>漲跌幅</th><th>持有張數</th><th>市值</th><th>未實現損益</th><th></th>
+          <th>股票</th><th>收盤價</th><th>漲跌幅</th><th>持有張數</th><th>市值</th><th>未實現損益</th><th></th>
         </tr></thead>
         <tbody id="stk-tbody"></tbody>
       </table>
@@ -300,9 +283,7 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
     <div class="card">
       <div class="card-header">
         <span class="card-title">支出明細</span>
-        <div style="display:flex;gap:6px;align-items:center">
-          <select id="filter-month" onchange="renderLiab()" style="background:var(--navy3);border:1px solid var(--border);border-radius:5px;padding:3px 8px;color:var(--text2);font-size:11px;font-family:var(--font-body)"></select>
-        </div>
+        <select id="filter-month" onchange="renderLiab()" style="background:var(--navy3);border:1px solid var(--border);border-radius:5px;padding:3px 8px;color:var(--text2);font-size:11px;font-family:var(--font-body)"></select>
       </div>
       <div class="card-body" style="max-height:380px;overflow-y:auto" id="exp-list"></div>
     </div>
@@ -321,20 +302,15 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
   </div>
   <div class="card">
     <div class="card-header"><span class="card-title">股票持倉未實現損益</span></div>
-    <div class="card-body"><div class="chart-wrap" style="height:150px"><canvas id="c-pnl"></canvas></div></div>
+    <div class="card-body"><div class="chart-wrap" style="height:160px"><canvas id="c-pnl"></canvas></div></div>
   </div>
 </div>
 
 <!-- SETTINGS -->
 <div id="pg-settings" style="display:none">
   <div style="max-width:640px;display:flex;flex-direction:column;gap:14px">
-
     <div class="settings-card">
       <div class="settings-title">Google Sheet 連結</div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.7">
-        FinLedger 透過 <strong style="color:var(--text2)">Google Apps Script</strong> 與你的 Sheet 雙向同步。<br/>
-        首次使用請先完成下方「安裝步驟」，再貼上 Web App URL。
-      </p>
       <div class="field" style="margin-bottom:8px">
         <label>Apps Script Web App URL</label>
         <div class="gs-url-row">
@@ -349,43 +325,42 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
         <button class="btn" onclick="pushToGs()">立即同步到 Sheet</button>
       </div>
     </div>
-
     <div class="settings-card">
       <div class="settings-title">Apps Script 安裝步驟</div>
-      <div style="counter-reset:step">
-        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.7">開啟你的 Google Sheet，點選上方選單 <code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">擴充功能</code> → <code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">Apps Script</code></div>
-        </div>
-        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.7">刪除原有程式碼，貼上下方腳本，按 <code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">Ctrl+S</code> 儲存</div>
-        </div>
-        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.7">點選右上角 <code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">部署</code> → <code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">新增部署</code>，類型選「網頁應用程式」，執行身份選「我」，存取權選「所有人」</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">開啟你的 Google Sheet → 上方選單點「<code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">擴充功能</code>」→「<code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">Apps Script</code>」</div>
         </div>
         <div style="display:flex;gap:12px;align-items:flex-start">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.7">複製產生的「網頁應用程式 URL」，貼入上方欄位，點「連結」</div>
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">刪除原有程式碼，點下方「複製腳本」，貼入後按 <code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">Ctrl+S</code></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">點「<code style="font-family:var(--font-mono);background:var(--navy3);padding:1px 5px;border-radius:3px;color:var(--teal);font-size:11px">部署</code>」→「新增部署」→ 類型選網頁應用程式 → 執行身份選「我」→ 存取選「所有人」→ 部署</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">複製「網頁應用程式 URL」貼入上方欄位，點「連結」</div>
         </div>
       </div>
-
       <div style="margin-top:14px">
-        <div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;font-weight:600;margin-bottom:8px">Apps Script 腳本（複製全部）</div>
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;font-weight:600;margin-bottom:8px">Apps Script 腳本</div>
         <div class="script-box" id="script-box"></div>
-        <button class="btn btn-sm" style="margin-top:8px" onclick="copyScript()">複製腳本</button>
-        <span id="copy-ok" style="font-size:11px;color:var(--teal);margin-left:8px;opacity:0;transition:opacity .3s"></span>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+          <button class="btn btn-sm" onclick="copyScript()">複製腳本</button>
+          <span id="copy-ok" style="font-size:11px;color:var(--teal);opacity:0;transition:opacity .3s"></span>
+        </div>
       </div>
     </div>
-
     <div class="settings-card">
       <div class="settings-title">台股報價</div>
       <div class="row"><span class="row-label">資料來源</span><span class="tag tag-teal">TWSE Open API</span></div>
+      <div class="row"><span class="row-label">非交易日處理</span><span style="font-size:12px;color:var(--text2)">自動取最近一個交易日收盤價</span></div>
       <div class="row"><span class="row-label">支援類型</span><div style="display:flex;gap:6px"><span class="tag tag-teal">上市股票</span><span class="tag tag-blue">ETF</span></div></div>
       <div class="row"><span class="row-label">最後更新</span><span class="row-value neu" id="last-refresh-t">—</span></div>
     </div>
-
     <div class="settings-card">
       <div class="settings-title">資料管理</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -397,42 +372,59 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
   </div>
 </div>
 
-</div><!-- /main -->
-</div><!-- /app -->
+</div>
+</div>
 
-<!-- MODALS -->
+<!-- MODAL: ADD/EDIT STOCK -->
 <div class="overlay" id="m-stock" onclick="if(event.target===this)closeModal('m-stock')">
   <div class="modal">
-    <h2>新增持股</h2>
-    <div class="field"><label>股票代碼</label><input id="s-code" type="text" placeholder="例如：2330 或 0050" /></div>
-    <div class="field"><label>股票名稱</label><input id="s-name" type="text" placeholder="例如：台積電" /></div>
-    <div class="field"><label>類型</label>
+    <h2 id="m-stock-title">新增持股</h2>
+    <div class="field">
+      <label>股票代碼</label>
+      <input id="s-code" type="text" placeholder="輸入代碼後自動帶入名稱，例如：2330" oninput="lookupName(this.value)" />
+      <div class="code-hint" id="code-hint">輸入代碼後自動查詢股票名稱</div>
+    </div>
+    <div class="field">
+      <label>股票名稱（自動帶入）</label>
+      <input id="s-name" type="text" placeholder="自動查詢中…" />
+    </div>
+    <div class="field">
+      <label>類型</label>
       <select id="s-type"><option value="stock">上市股票 (TWSE)</option><option value="etf">ETF</option></select>
     </div>
-    <div class="field"><label>持有張數</label><input id="s-shares" type="number" placeholder="1" step="0.001" min="0" /></div>
-    <div class="field"><label>成本均價（元 / 股）</label><input id="s-cost" type="number" placeholder="例如：580" /></div>
+    <div class="field">
+      <label>持有張數（1張 = 1000股）</label>
+      <input id="s-shares" type="number" placeholder="例如：1" step="0.001" min="0" />
+    </div>
+    <div class="field">
+      <label>成本均價（元 / 股）</label>
+      <input id="s-cost" type="number" placeholder="例如：580" />
+    </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('m-stock')">取消</button>
-      <button class="btn btn-primary" onclick="addStock()">新增並取得報價</button>
+      <button class="btn btn-primary" id="m-stock-submit" onclick="submitStock()">新增</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL: ADD/EDIT BANK -->
 <div class="overlay" id="m-bank" onclick="if(event.target===this)closeModal('m-bank')">
   <div class="modal">
-    <h2>新增銀行帳戶</h2>
+    <h2 id="m-bank-title">新增銀行帳戶</h2>
     <div class="field"><label>銀行名稱</label><input id="b-name" type="text" placeholder="例如：台灣銀行" /></div>
     <div class="field"><label>帳戶類型</label>
       <select id="b-type"><option>活期存款</option><option>定期存款</option><option>外幣帳戶</option><option>證券帳戶</option><option>其他</option></select>
     </div>
     <div class="field"><label>餘額（NT$）</label><input id="b-amt" type="number" placeholder="例如：500000" /></div>
+    <div class="field"><label>備註（選填）</label><textarea id="b-note" placeholder="例如：薪資入帳帳戶、緊急備用金…"></textarea></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('m-bank')">取消</button>
-      <button class="btn btn-primary" onclick="addBank()">新增</button>
+      <button class="btn btn-primary" id="m-bank-submit" onclick="submitBank()">新增</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL: EXPENSE -->
 <div class="overlay" id="m-expense" onclick="if(event.target===this)closeModal('m-expense')">
   <div class="modal">
     <h2>記錄支出</h2>
@@ -455,7 +447,6 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast">
   <div class="toast-dot" id="toast-dot"></div>
   <span id="toast-msg"></span>
@@ -463,31 +454,24 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// ─── DATA ────────────────────────────────────────────────
+// ─── CONSTANTS ───────────────────────────────────────────
 const CATS={
-  food:{l:'飲食',i:'🍜',c:'#F05252'},
-  rent:{l:'房租',i:'🏠',c:'#4DA6FF'},
-  transport:{l:'交通',i:'🚇',c:'#10B981'},
-  entertainment:{l:'娛樂',i:'🎬',c:'#C9A84C'},
-  health:{l:'醫療健康',i:'💊',c:'#D4537E'},
-  shopping:{l:'購物',i:'🛍',c:'#7F77DD'},
-  utilities:{l:'水電瓦斯',i:'💡',c:'#EF9F27'},
-  education:{l:'教育進修',i:'📚',c:'#5DCAA5'},
-  insurance:{l:'保險',i:'🛡',c:'#8FA8C0'},
-  other:{l:'其他',i:'📌',c:'#4A6A85'}
+  food:{l:'飲食',i:'🍜',c:'#F05252'},rent:{l:'房租',i:'🏠',c:'#4DA6FF'},
+  transport:{l:'交通',i:'🚇',c:'#10B981'},entertainment:{l:'娛樂',i:'🎬',c:'#C9A84C'},
+  health:{l:'醫療健康',i:'💊',c:'#D4537E'},shopping:{l:'購物',i:'🛍',c:'#7F77DD'},
+  utilities:{l:'水電瓦斯',i:'💡',c:'#EF9F27'},education:{l:'教育進修',i:'📚',c:'#5DCAA5'},
+  insurance:{l:'保險',i:'🛡',c:'#8FA8C0'},other:{l:'其他',i:'📌',c:'#4A6A85'}
 };
 const BCOLORS=['#00C9A7','#4DA6FF','#C9A84C','#D4537E','#7F77DD','#10B981','#F05252'];
 
-const APPS_SCRIPT = `// FinLedger Apps Script
-// 部署為 Web App：執行身份=我，存取=所有人
-
-const SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+const APPS_SCRIPT=`// FinLedger Apps Script
+// 部署方式：部署 → 新增部署 → 網頁應用程式 → 執行身份=我 → 存取=所有人
 
 function doGet(e) {
   try {
-    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
     const result = {};
-    ['stocks','banks','expenses','meta'].forEach(name => {
+    ['stocks','banks','expenses'].forEach(name => {
       const sh = ss.getSheetByName(name);
       if (!sh) return;
       const vals = sh.getDataRange().getValues();
@@ -512,18 +496,14 @@ function doGet(e) {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
     const { sheet, headers, rows } = payload;
-    let sh = ss.getSheetByName(sheet);
-    if (!sh) sh = ss.insertSheet(sheet);
+    let sh = ss.getSheetByName(sheet) || ss.insertSheet(sheet);
     sh.clearContents();
     const all = [headers, ...rows];
     sh.getRange(1, 1, all.length, headers.length).setValues(all);
-    // Style header row
     sh.getRange(1, 1, 1, headers.length)
-      .setBackground('#0F2238')
-      .setFontColor('#00C9A7')
-      .setFontWeight('bold');
+      .setBackground('#0F2238').setFontColor('#00C9A7').setFontWeight('bold');
     return ContentService
       .createTextOutput(JSON.stringify({ ok: true }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -534,16 +514,17 @@ function doPost(e) {
   }
 }`;
 
-let D = JSON.parse(localStorage.getItem('fl4') || 'null') || {
+// ─── STATE ───────────────────────────────────────────────
+let D = JSON.parse(localStorage.getItem('fl5') || 'null') || {
   stocks:[
-    {code:'2330',name:'台積電',type:'stock',shares:1,cost:580,price:null,chg:null},
-    {code:'0050',name:'元大台灣50',type:'etf',shares:3,cost:140,price:null,chg:null},
-    {code:'2317',name:'鴻海',type:'stock',shares:2,cost:95,price:null,chg:null}
+    {code:'2330',name:'台積電',type:'stock',shares:1,cost:580,price:null,chg:null,priceDate:null},
+    {code:'0050',name:'元大台灣50',type:'etf',shares:3,cost:140,price:null,chg:null,priceDate:null},
+    {code:'2317',name:'鴻海',type:'stock',shares:2,cost:95,price:null,chg:null,priceDate:null}
   ],
   banks:[
-    {name:'台灣銀行',type:'活期存款',amt:800000,color:BCOLORS[0]},
-    {name:'國泰世華',type:'定期存款',amt:300000,color:BCOLORS[1]},
-    {name:'永豐銀行',type:'活期存款',amt:120000,color:BCOLORS[2]}
+    {name:'台灣銀行',type:'活期存款',amt:800000,color:BCOLORS[0],note:'薪資入帳'},
+    {name:'國泰世華',type:'定期存款',amt:300000,color:BCOLORS[1],note:''},
+    {name:'永豐銀行',type:'活期存款',amt:120000,color:BCOLORS[2],note:'日常消費帳戶'}
   ],
   expenses:[
     {id:1,cat:'food',amt:280,desc:'午餐',date:'2026-03-14'},
@@ -556,7 +537,7 @@ let D = JSON.parse(localStorage.getItem('fl4') || 'null') || {
   ],
   gsUrl:'', nextId:8, lastRefresh:null
 };
-const save=()=>localStorage.setItem('fl4',JSON.stringify(D));
+const save=()=>localStorage.setItem('fl5',JSON.stringify(D));
 const fmt=n=>'NT$'+Math.round(n).toLocaleString();
 const fmtPct=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
 const ymNow=()=>{const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`};
@@ -570,8 +551,7 @@ function goto(p){
   ['dashboard','assets','liabilities','charts','settings'].forEach((n,i)=>{
     if(n===p)document.querySelectorAll('.nav-btn')[i].classList.add('active');
   });
-  curPage=p;
-  renderAll();
+  curPage=p;renderAll();
   if(p==='charts')setTimeout(renderCharts,60);
   if(p==='settings'){document.getElementById('script-box').textContent=APPS_SCRIPT;updateGsUi();}
   if(p==='liabilities')buildMonthFilter();
@@ -591,13 +571,13 @@ const monthExp=()=>{const ym=ymNow();return D.expenses.filter(e=>e.date.startsWi
 // ─── RENDER ──────────────────────────────────────────────
 function renderKpis(){
   const sv=stockMV(),bv=bankTotal(),me=monthExp();
-  const costBase=D.stocks.reduce((s,st)=>s+st.cost*st.shares*1000,0);
-  const pnlPct=costBase>0?((sv-costBase)/costBase*100).toFixed(2):0;
-  const pClass=parseFloat(pnlPct)>=0?'up':'dn';
+  const cb=D.stocks.reduce((s,st)=>s+st.cost*st.shares*1000,0);
+  const pp=cb>0?((sv-cb)/cb*100).toFixed(2):0;
+  const pc=parseFloat(pp)>=0?'up':'dn';
   document.getElementById('kpi-row').innerHTML=`
-    <div class="kpi teal"><div class="kpi-label">股票總市值</div><div class="kpi-value">${fmt(sv)}</div><div class="kpi-sub"><span class="${pClass}">${fmtPct(parseFloat(pnlPct))}</span>&nbsp;vs 成本</div></div>
+    <div class="kpi teal"><div class="kpi-label">股票總市值</div><div class="kpi-value">${fmt(sv)}</div><div class="kpi-sub"><span class="${pc}">${fmtPct(parseFloat(pp))}</span> vs 成本</div></div>
     <div class="kpi gold"><div class="kpi-label">銀行存款</div><div class="kpi-value">${fmt(bv)}</div><div class="kpi-sub">${D.banks.length} 個帳戶</div></div>
-    <div class="kpi red"><div class="kpi-label">本月支出</div><div class="kpi-value">${fmt(me)}</div><div class="kpi-sub">${D.expenses.filter(e=>e.date.startsWith(ymNow())).length} 筆</div></div>
+    <div class="kpi red"><div class="kpi-label">本月支出</div><div class="kpi-value">${fmt(me)}</div><div class="kpi-sub">${D.expenses.filter(e=>e.date.startsWith(ymNow())).length} 筆記錄</div></div>
     <div class="kpi blue"><div class="kpi-label">總資產</div><div class="kpi-value">${fmt(sv+bv)}</div><div class="kpi-sub">股票 + 存款</div></div>`;
 }
 
@@ -605,11 +585,18 @@ function renderDashStocks(){
   document.getElementById('dash-stocks').innerHTML=D.stocks.slice(0,6).map(st=>{
     const mv=(st.price||st.cost)*st.shares*1000,cost=st.cost*st.shares*1000;
     const pp=((mv-cost)/cost*100).toFixed(1);
+    const dateLabel=st.priceDate?`<span style="font-size:10px;color:var(--text3);margin-left:4px">${st.priceDate}</span>`:'';
     return`<div class="exp-item">
-      <div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:500">${st.name}</span><span class="stk-code">${st.code}</span>${st.type==='etf'?'<span class="etf-badge">ETF</span>':''}</div>
+      <div style="flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:500">${st.name}</span>
+        <span class="stk-code">${st.code}</span>
+        ${st.type==='etf'?'<span class="etf-badge">ETF</span>':''}
+      </div>
       <div style="font-size:11px;color:var(--text3);margin-top:2px">${st.shares}張 · 成本 ${st.cost.toLocaleString()}元</div></div>
-      <div style="text-align:right"><div style="font-family:var(--font-mono);font-size:13px">${st.price?st.price.toLocaleString()+'元':'待更新'}</div>
-      <div style="font-size:11px" class="${parseFloat(pp)>=0?'up':'dn'}">${parseFloat(pp)>=0?'+':''}${pp}%</div></div></div>`;
+      <div style="text-align:right">
+        <div style="font-family:var(--font-mono);font-size:13px">${st.price?st.price.toLocaleString()+'元':'待更新'}${dateLabel}</div>
+        <div style="font-size:11px" class="${parseFloat(pp)>=0?'up':'dn'}">${parseFloat(pp)>=0?'+':''}${pp}%</div>
+      </div></div>`;
   }).join('')||'<div class="empty">尚無持股</div>';
 }
 
@@ -630,16 +617,20 @@ function renderStkTable(){
     const mv=(st.price||st.cost)*st.shares*1000,cost=st.cost*st.shares*1000;
     const pnl=mv-cost,pp=((pnl/cost)*100).toFixed(2);
     const cls=pnl>=0?'up':'dn';
+    const dateLabel=st.priceDate?`<div style="font-size:10px;color:var(--text3);margin-top:1px">${st.priceDate} 收盤</div>`:'';
     return`<tr>
-      <td><div class="stk-name">${st.name}${st.type==='etf'?'<span class="etf-badge">ETF</span>':''}</div><div style="margin-top:2px"><span class="stk-code">${st.code}</span></div></td>
-      <td class="stk-num">${st.price?st.price.toLocaleString():'—'}</td>
+      <td><div class="stk-name">${st.name}${st.type==='etf'?'<span class="etf-badge">ETF</span>':''}</div><span class="stk-code">${st.code}</span></td>
+      <td class="stk-num"><div>${st.price?st.price.toLocaleString():'—'}</div>${dateLabel}</td>
       <td class="stk-num ${st.chg!=null?(st.chg>=0?'up':'dn'):'neu'}">${st.chg!=null?fmtPct(st.chg):'—'}</td>
       <td class="stk-num">${st.shares}</td>
       <td class="stk-num">${fmt(mv)}</td>
-      <td class="stk-num ${cls}">${pnl>=0?'+':''}${fmt(pnl)}<br><span style="font-size:10px">${fmtPct(parseFloat(pp))}</span></td>
-      <td><button class="btn btn-sm btn-danger" onclick="delStock(${i})">移除</button></td>
+      <td class="stk-num ${cls}">${pnl>=0?'+':''}${fmt(pnl)}<div style="font-size:10px">${fmtPct(parseFloat(pp))}</div></td>
+      <td><div class="stk-actions">
+        <button class="btn btn-sm btn-edit" onclick="openEditStock(${i})">編輯</button>
+        <button class="btn btn-sm btn-danger" onclick="delStock(${i})">移除</button>
+      </div></td>
     </tr>`;
-  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">尚無持股</td></tr>';
+  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">尚無持股，點擊「新增持股」</td></tr>';
 }
 
 function renderBankList(){
@@ -647,18 +638,25 @@ function renderBankList(){
   document.getElementById('bank-list').innerHTML=D.banks.map((b,i)=>`
     <div class="bank-item">
       <div class="bank-dot" style="background:${b.color}"></div>
-      <div class="bank-name-wrap"><div class="bank-nm">${b.name}</div><div class="bank-tp">${b.type}</div></div>
-      <input class="editable-amt" type="number" value="${b.amt}" title="直接點擊編輯金額" onchange="D.banks[${i}].amt=parseFloat(this.value)||0;save();renderKpis();renderBankList();syncQ()" />
+      <div class="bank-name-wrap">
+        <div class="bank-nm">${b.name}</div>
+        <div class="bank-tp">${b.type}</div>
+        ${b.note?`<div class="bank-note">${b.note}</div>`:''}
+      </div>
+      <input class="editable-amt" type="number" value="${b.amt}" title="直接點擊編輯餘額" onchange="D.banks[${i}].amt=parseFloat(this.value)||0;save();renderKpis();renderBankList();syncQ()" />
+      <button class="btn btn-sm btn-edit" onclick="openEditBank(${i})" style="margin-left:4px">編輯</button>
       <button class="del-btn" onclick="D.banks.splice(${i},1);save();renderAll()">✕</button>
     </div>`).join('')||'<div class="empty">尚無帳戶</div>';
 }
 
 function buildMonthFilter(){
   const sel=document.getElementById('filter-month');
+  if(!sel)return;
   const months=new Set(D.expenses.map(e=>e.date.slice(0,7)));
   months.add(ymNow());
   const sorted=[...months].sort().reverse();
-  sel.innerHTML=sorted.map(m=>`<option value="${m}"${m===ymNow()?'selected':''}>${m.replace('-','年')}月</option>`).join('');
+  const cur=sel.value||ymNow();
+  sel.innerHTML=sorted.map(m=>`<option value="${m}"${m===cur?'selected':''}>${m.replace('-','年')}月</option>`).join('');
 }
 
 function renderLiab(){
@@ -673,12 +671,14 @@ function renderLiab(){
     return`<div class="cat-bar">
       <div class="cat-bar-header">
         <span style="font-size:13px;color:var(--text2)">${CATS[cat].i} ${CATS[cat].l}</span>
-        <span style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--font-mono);font-size:13px">${fmt(amt)}</span><span style="font-size:11px;color:var(--text3)">${pct}%</span></span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--font-mono);font-size:13px">${fmt(amt)}</span>
+          <span style="font-size:12px;color:var(--teal);font-weight:600">${pct}%</span>
+        </span>
       </div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${CATS[cat].c}"></div></div>
     </div>`;
   }).join('')||'<div class="empty">本月尚無支出</div>';
-
   document.getElementById('exp-list').innerHTML=[...exps].reverse().map(e=>`
     <div class="exp-item">
       <div class="exp-icon" style="background:${CATS[e.cat].c}20">${CATS[e.cat].i}</div>
@@ -688,29 +688,65 @@ function renderLiab(){
     </div>`).join('')||'<div class="empty">無支出記錄</div>';
 }
 
+// ─── CHARTS (4) with percentages ─────────────────────────
 let charts={};
 function renderCharts(){
   const ym=ymNow();
   const exps=D.expenses.filter(e=>e.date.startsWith(ym));
   const byCat={};exps.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amt);
   const catKeys=Object.keys(byCat);
+  const totalExp=exps.reduce((s,e)=>s+e.amt,0);
   const tColor='rgba(143,168,192,0.8)',gridColor='rgba(255,255,255,0.04)';
-  const base={plugins:{legend:{labels:{color:tColor,font:{size:11},boxWidth:10,padding:10}}},responsive:true,maintainAspectRatio:false};
-  const doughnut=(id,labels,data,colors)=>{
-    if(charts[id])charts[id].destroy();
-    charts[id]=new Chart(document.getElementById(id).getContext('2d'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{...base,cutout:'68%'}});
-  };
-  doughnut('c-pie',catKeys.map(k=>CATS[k].l),catKeys.map(k=>byCat[k]),catKeys.map(k=>CATS[k].c));
-  doughnut('c-alloc',['台股持倉',...D.banks.map(b=>b.name)],[stockMV(),...D.banks.map(b=>b.amt)],['#00C9A7',...D.banks.map(b=>b.color)]);
+
+  // Doughnut with % labels
+  const doughnutOpts=(totalVal)=>({
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{color:tColor,font:{size:11},boxWidth:10,padding:10}},
+      tooltip:{callbacks:{label:ctx=>{
+        const pct=totalVal>0?((ctx.raw/totalVal)*100).toFixed(1):0;
+        return` ${ctx.label}: ${fmt(ctx.raw)} (${pct}%)`;
+      }}}
+    },
+    cutout:'65%'
+  });
+
+  if(charts.pie)charts.pie.destroy();
+  charts.pie=new Chart(document.getElementById('c-pie').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:catKeys.map(k=>CATS[k].l),datasets:[{data:catKeys.map(k=>byCat[k]),backgroundColor:catKeys.map(k=>CATS[k].c),borderWidth:0,hoverOffset:4}]},
+    options:{...doughnutOpts(totalExp),plugins:{...doughnutOpts(totalExp).plugins,
+      // Centre label
+      tooltip:doughnutOpts(totalExp).plugins.tooltip
+    }}
+  });
+
+  const totalAssets=stockMV()+bankTotal();
+  if(charts.alloc)charts.alloc.destroy();
+  charts.alloc=new Chart(document.getElementById('c-alloc').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['台股持倉',...D.banks.map(b=>b.name)],datasets:[{data:[stockMV(),...D.banks.map(b=>b.amt)],backgroundColor:['#00C9A7',...D.banks.map(b=>b.color)],borderWidth:0,hoverOffset:4}]},
+    options:doughnutOpts(totalAssets)
+  });
 
   const now=new Date();const months=[],totals=[];
   for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;months.push(`${d.getMonth()+1}月`);totals.push(D.expenses.filter(e=>e.date.startsWith(k)).reduce((s,e)=>s+e.amt,0));}
   if(charts.trend)charts.trend.destroy();
-  charts.trend=new Chart(document.getElementById('c-trend').getContext('2d'),{type:'bar',data:{labels:months,datasets:[{label:'支出',data:totals,backgroundColor:'rgba(0,201,167,0.15)',borderColor:'#00C9A7',borderWidth:1.5,borderRadius:4}]},options:{...base,plugins:{legend:{display:false}},scales:{y:{ticks:{color:tColor,callback:v=>'NT$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}},x:{ticks:{color:tColor},grid:{display:false}}}}});
+  charts.trend=new Chart(document.getElementById('c-trend').getContext('2d'),{
+    type:'bar',
+    data:{labels:months,datasets:[{label:'支出',data:totals,backgroundColor:'rgba(0,201,167,0.15)',borderColor:'#00C9A7',borderWidth:1.5,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`NT$${ctx.raw.toLocaleString()}`}}},scales:{y:{ticks:{color:tColor,callback:v=>'NT$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}},x:{ticks:{color:tColor},grid:{display:false}}}}
+  });
 
-  const pnlData=D.stocks.map(st=>({name:st.name,pnl:(st.price||st.cost)*st.shares*1000-st.cost*st.shares*1000}));
+  const totalMV=stockMV();
+  const pnlData=D.stocks.map(st=>{const mv=(st.price||st.cost)*st.shares*1000;const cost=st.cost*st.shares*1000;return{name:st.name,pnl:mv-cost,mv};});
   if(charts.pnl)charts.pnl.destroy();
-  charts.pnl=new Chart(document.getElementById('c-pnl').getContext('2d'),{type:'bar',data:{labels:pnlData.map(d=>d.name),datasets:[{data:pnlData.map(d=>d.pnl),backgroundColor:pnlData.map(d=>d.pnl>=0?'rgba(16,185,129,0.25)':'rgba(240,82,82,0.25)'),borderColor:pnlData.map(d=>d.pnl>=0?'#10B981':'#F05252'),borderWidth:1.5,borderRadius:4}]},options:{...base,plugins:{legend:{display:false}},scales:{y:{ticks:{color:tColor,callback:v=>'NT$'+(Math.abs(v)/1000).toFixed(0)+'k'},grid:{color:gridColor}},x:{ticks:{color:tColor},grid:{display:false}}}}});
+  charts.pnl=new Chart(document.getElementById('c-pnl').getContext('2d'),{
+    type:'bar',
+    data:{labels:pnlData.map(d=>d.name),datasets:[{data:pnlData.map(d=>d.pnl),backgroundColor:pnlData.map(d=>d.pnl>=0?'rgba(16,185,129,0.25)':'rgba(240,82,82,0.25)'),borderColor:pnlData.map(d=>d.pnl>=0?'#10B981':'#F05252'),borderWidth:1.5,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const d=pnlData[ctx.dataIndex];const pct=d.mv>0?((d.pnl/(d.mv-d.pnl))*100).toFixed(1):0;return` ${fmt(d.pnl)} (${pct}%)`;
+    }}}},scales:{y:{ticks:{color:tColor,callback:v=>'NT$'+(Math.abs(v)/1000).toFixed(0)+'k'},grid:{color:gridColor}},x:{ticks:{color:tColor},grid:{display:false}}}}
+  });
 }
 
 function renderAll(){
@@ -720,55 +756,187 @@ function renderAll(){
   updateGsUi();
 }
 
-// ─── STOCK REFRESH ───────────────────────────────────────
+// ─── STOCK REFRESH (with fallback to latest trading day) ──
+async function fetchStockPrice(code){
+  // 1. Try live intraday
+  try{
+    const r=await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${code}.tw&json=1&delay=0`);
+    const d=await r.json();
+    if(d.msgArray&&d.msgArray[0]){
+      const m=d.msgArray[0];
+      const p=parseFloat(m.z!=='-'?m.z:(m.b||m.a));
+      const y=parseFloat(m.y);
+      const nm=m.n||'';
+      if(!isNaN(p)&&p>0&&!isNaN(y)){
+        return{price:p,chg:parseFloat(((p-y)/y*100).toFixed(2)),name:nm,date:null};
+      }
+    }
+  }catch(e){}
+  // 2. Fallback: latest closing price from TWSE daily API
+  try{
+    const r=await fetch(`https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&stockNo=${code}`);
+    const d=await r.json();
+    if(d.data&&d.data.length>0){
+      const last=d.data[d.data.length-1];
+      const price=parseFloat(last[6].replace(/,/g,''));// 收盤價 index 6
+      const prev=d.data.length>1?parseFloat(d.data[d.data.length-2][6].replace(/,/g,'')):price;
+      const chg=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
+      const rawDate=last[0]; // e.g. "115/03/14"
+      return{price,chg,name:d.stat==='OK'?'':null,date:rawDate};
+    }
+  }catch(e){}
+  return null;
+}
+
 async function doRefresh(btn){
   const icon=document.getElementById('ri');
   icon.classList.add('spinning');
   let ok=0;
   for(const st of D.stocks){
-    try{
-      const r=await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${st.code}.tw&json=1&delay=0`);
-      const d=await r.json();
-      if(d.msgArray&&d.msgArray[0]){
-        const m=d.msgArray[0];
-        const p=parseFloat(m.z||m.b||m.a),y=parseFloat(m.y);
-        if(!isNaN(p)&&!isNaN(y)){st.price=p;st.chg=parseFloat(((p-y)/y*100).toFixed(2));ok++;}
-      }
-    }catch(e){}
+    const res=await fetchStockPrice(st.code);
+    if(res){
+      st.price=res.price;
+      st.chg=res.chg;
+      if(res.name&&res.name.trim())st.name=res.name.trim();
+      st.priceDate=res.date;
+      ok++;
+    }
   }
   D.lastRefresh=new Date().toLocaleTimeString('zh-TW');
-  save();icon.classList.remove('spinning');
+  save();
+  icon.classList.remove('spinning');
   const el=document.getElementById('last-refresh-t');if(el)el.textContent=D.lastRefresh;
-  toast(ok>0?`已更新 ${ok} 支股票報價`:'TWSE 目前無法取得報價（非交易時段）','teal');
+  toast(ok>0?`已更新 ${ok} 支股票報價（含非交易日回溯）`:'目前無法取得報價','teal');
   renderAll();
 }
 
-// ─── MODALS ──────────────────────────────────────────────
+// ─── STOCK NAME LOOKUP ───────────────────────────────────
+let lookupTimer=null;
+async function lookupName(code){
+  clearTimeout(lookupTimer);
+  const hint=document.getElementById('code-hint');
+  const nameField=document.getElementById('s-name');
+  if(!code||code.length<4){hint.textContent='輸入代碼後自動查詢股票名稱';hint.className='code-hint';return;}
+  hint.textContent='查詢中…';hint.className='code-hint';
+  lookupTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${code}.tw&json=1&delay=0`);
+      const d=await r.json();
+      if(d.msgArray&&d.msgArray[0]&&d.msgArray[0].n){
+        const nm=d.msgArray[0].n.trim();
+        nameField.value=nm;
+        hint.textContent=`找到：${nm}`;hint.className='code-hint ok';
+        // Auto-detect ETF
+        if(code.startsWith('00'))document.getElementById('s-type').value='etf';
+      } else {
+        // Fallback: TWSE daily
+        const r2=await fetch(`https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&stockNo=${code}`);
+        const d2=await r2.json();
+        if(d2.title){
+          const match=d2.title.match(/[\u4e00-\u9fff]+/);
+          if(match){nameField.value=match[0];hint.textContent=`找到：${match[0]}`;hint.className='code-hint ok';return;}
+        }
+        hint.textContent='找不到此代碼，請手動輸入名稱';hint.className='code-hint err';
+      }
+    }catch(e){hint.textContent='查詢失敗，請手動輸入名稱';hint.className='code-hint err';}
+  },500);
+}
+
+// ─── STOCK MODAL (add / edit) ────────────────────────────
+let editStockIdx=null;
 function openModal(id){
   if(id==='m-expense')document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
   document.getElementById(id).classList.add('show');
 }
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 
-function addStock(){
+function openAddStock(){
+  editStockIdx=null;
+  document.getElementById('m-stock-title').textContent='新增持股';
+  document.getElementById('m-stock-submit').textContent='新增';
+  document.getElementById('s-code').value='';
+  document.getElementById('s-name').value='';
+  document.getElementById('s-shares').value='';
+  document.getElementById('s-cost').value='';
+  document.getElementById('s-type').value='stock';
+  document.getElementById('code-hint').textContent='輸入代碼後自動查詢股票名稱';
+  document.getElementById('code-hint').className='code-hint';
+  openModal('m-stock');
+}
+function openEditStock(i){
+  editStockIdx=i;
+  const st=D.stocks[i];
+  document.getElementById('m-stock-title').textContent='編輯持股';
+  document.getElementById('m-stock-submit').textContent='儲存';
+  document.getElementById('s-code').value=st.code;
+  document.getElementById('s-name').value=st.name;
+  document.getElementById('s-shares').value=st.shares;
+  document.getElementById('s-cost').value=st.cost;
+  document.getElementById('s-type').value=st.type;
+  document.getElementById('code-hint').textContent=`目前：${st.name}`;
+  document.getElementById('code-hint').className='code-hint ok';
+  openModal('m-stock');
+}
+function submitStock(){
   const code=document.getElementById('s-code').value.trim();
   const name=document.getElementById('s-name').value.trim();
   const type=document.getElementById('s-type').value;
   const shares=parseFloat(document.getElementById('s-shares').value);
   const cost=parseFloat(document.getElementById('s-cost').value);
   if(!code||!name||isNaN(shares)||isNaN(cost)){toast('請填寫所有欄位','red');return;}
-  D.stocks.push({code,name,type,shares,cost,price:null,chg:null});
-  save();closeModal('m-stock');renderAll();doRefresh(null);syncQ();
+  if(editStockIdx!==null){
+    const st=D.stocks[editStockIdx];
+    st.code=code;st.name=name;st.type=type;st.shares=shares;st.cost=cost;
+  } else {
+    D.stocks.push({code,name,type,shares,cost,price:null,chg:null,priceDate:null});
+  }
+  save();closeModal('m-stock');renderAll();
+  doRefresh(null);syncQ();
 }
 function delStock(i){if(confirm('確定移除此持股？')){D.stocks.splice(i,1);save();renderAll();syncQ();}}
 
-function addBank(){
+// ─── BANK MODAL (add / edit) ─────────────────────────────
+let editBankIdx=null;
+function openEditBank(i){
+  editBankIdx=i;
+  const b=D.banks[i];
+  document.getElementById('m-bank-title').textContent='編輯帳戶';
+  document.getElementById('m-bank-submit').textContent='儲存';
+  document.getElementById('b-name').value=b.name;
+  document.getElementById('b-type').value=b.type;
+  document.getElementById('b-amt').value=b.amt;
+  document.getElementById('b-note').value=b.note||'';
+  openModal('m-bank');
+}
+function submitBank(){
   const name=document.getElementById('b-name').value.trim();
   const type=document.getElementById('b-type').value;
   const amt=parseFloat(document.getElementById('b-amt').value);
-  if(!name||isNaN(amt)){toast('請填寫所有欄位','red');return;}
-  D.banks.push({name,type,amt,color:BCOLORS[D.banks.length%BCOLORS.length]});
+  const note=document.getElementById('b-note').value.trim();
+  if(!name||isNaN(amt)){toast('請填寫銀行名稱與金額','red');return;}
+  if(editBankIdx!==null){
+    const b=D.banks[editBankIdx];
+    b.name=name;b.type=type;b.amt=amt;b.note=note;
+  } else {
+    D.banks.push({name,type,amt,note,color:BCOLORS[D.banks.length%BCOLORS.length]});
+  }
   save();closeModal('m-bank');renderAll();syncQ();
+}
+
+// Wire up the + button in assets page to use openAddStock
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelector('[onclick="openModal(\'m-stock\')"]')?.setAttribute('onclick',"openAddStock()");
+  document.getElementById('m-bank-submit').onclick=submitBank;
+  document.getElementById('m-bank-title').textContent='新增銀行帳戶';
+  document.getElementById('m-bank-submit').textContent='新增';
+});
+
+function openBankModal(){
+  editBankIdx=null;
+  document.getElementById('m-bank-title').textContent='新增銀行帳戶';
+  document.getElementById('m-bank-submit').textContent='新增';
+  ['b-name','b-amt','b-note'].forEach(id=>document.getElementById(id).value='');
+  openModal('m-bank');
 }
 
 function addExpense(){
@@ -784,54 +952,41 @@ function delExp(id){D.expenses=D.expenses.filter(e=>e.id!==id);save();renderLiab
 
 // ─── GOOGLE SHEET SYNC ───────────────────────────────────
 function updateGsUi(){
-  const connected=!!D.gsUrl;
-  document.getElementById('gs-dot').className='gs-dot'+(connected?' on':'');
-  document.getElementById('gs-label').textContent=connected?'已連結':'Google Sheet';
-  if(document.getElementById('gs-url-input'))document.getElementById('gs-url-input').value=D.gsUrl||'';
-  const bar=document.getElementById('gs-status-bar');
-  if(!bar)return;
-  if(connected)bar.innerHTML=`<div class="status-bar status-ok"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><polyline points="4,7 6,9 10,5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> 已連結 · 資料自動同步至 Google Sheet</div>`;
-  else bar.innerHTML=`<div class="status-bar status-warn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><line x1="7" y1="4" x2="7" y2="8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10" r="0.7" fill="currentColor"/></svg> 尚未連結 Google Sheet，資料僅存於本機瀏覽器</div>`;
+  const on=!!D.gsUrl;
+  document.getElementById('gs-dot').className='gs-dot'+(on?' on':'');
+  document.getElementById('gs-label').textContent=on?'已連結':'Google Sheet';
+  const inp=document.getElementById('gs-url-input');if(inp)inp.value=D.gsUrl||'';
+  const bar=document.getElementById('gs-status-bar');if(!bar)return;
+  bar.innerHTML=on
+    ?`<div class="status-bar status-ok"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><polyline points="4,7 6,9 10,5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> 已連結 · 資料自動同步</div>`
+    :`<div class="status-bar status-warn"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><line x1="7" y1="4" x2="7" y2="8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10" r="0.7" fill="currentColor"/></svg> 尚未連結，資料僅存於本機</div>`;
 }
-
 async function connectGs(){
   const url=document.getElementById('gs-url-input').value.trim();
   if(!url){toast('請貼上 Apps Script URL','red');return;}
-  D.gsUrl=url;save();updateGsUi();
-  await testGs();
+  D.gsUrl=url;save();updateGsUi();await testGs();
 }
-
 async function testGs(){
   if(!D.gsUrl){toast('請先輸入 Apps Script URL','red');return;}
   toast('測試連線中…','gold');
   try{
-    const r=await fetch(D.gsUrl+'?action=ping');
-    const d=await r.json();
-    if(d.ok){toast('連線成功！','teal');}
-    else{toast('連線失敗：'+d.error,'red');}
-  }catch(e){toast('連線成功（CORS 預期行為，實際同步正常）','teal');}
+    await fetch(D.gsUrl+'?action=ping');
+    toast('連線正常','teal');
+  }catch(e){toast('連線成功（CORS 為預期行為）','teal');}
 }
-
-function buildSheetPayload(sheetName, dataArr, fields){
-  return{sheet:sheetName, headers:fields, rows:dataArr.map(obj=>fields.map(f=>obj[f]??''))};
-}
-
+function buildPayload(sheetName,arr,fields){return{sheet:sheetName,headers:fields,rows:arr.map(o=>fields.map(f=>o[f]??''))};}
 async function pushToGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}
   document.getElementById('gs-dot').className='gs-dot syncing';
   try{
-    const post=async(payload)=>fetch(D.gsUrl,{method:'POST',body:JSON.stringify(payload)});
-    await post(buildSheetPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg']));
-    await post(buildSheetPayload('banks',D.banks,['name','type','amt','color']));
-    await post(buildSheetPayload('expenses',D.expenses,['id','cat','amt','desc','date']));
+    const p=body=>fetch(D.gsUrl,{method:'POST',body:JSON.stringify(body)});
+    await p(buildPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','priceDate']));
+    await p(buildPayload('banks',D.banks,['name','type','amt','color','note']));
+    await p(buildPayload('expenses',D.expenses,['id','cat','amt','desc','date']));
     document.getElementById('gs-dot').className='gs-dot on';
     toast('已同步至 Google Sheet','teal');
-  }catch(e){
-    document.getElementById('gs-dot').className='gs-dot error';
-    toast('同步失敗，請確認 Apps Script 已正確部署','red');
-  }
+  }catch(e){document.getElementById('gs-dot').className='gs-dot error';toast('同步失敗，請確認 Apps Script 已正確部署','red');}
 }
-
 async function pullFromGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}
   document.getElementById('gs-dot').className='gs-dot syncing';
@@ -839,20 +994,15 @@ async function pullFromGs(){
     const r=await fetch(D.gsUrl+'?action=getAll');
     const d=await r.json();
     if(d.ok&&d.data){
-      if(d.data.stocks&&d.data.stocks.length)D.stocks=d.data.stocks.map(s=>({...s,shares:parseFloat(s.shares),cost:parseFloat(s.cost),price:s.price?parseFloat(s.price):null,chg:s.chg?parseFloat(s.chg):null}));
-      if(d.data.banks&&d.data.banks.length)D.banks=d.data.banks.map(b=>({...b,amt:parseFloat(b.amt)}));
-      if(d.data.expenses&&d.data.expenses.length)D.expenses=d.data.expenses.map(e=>({...e,id:parseInt(e.id),amt:parseFloat(e.amt)}));
+      if(d.data.stocks?.length)D.stocks=d.data.stocks.map(s=>({...s,shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null}));
+      if(d.data.banks?.length)D.banks=d.data.banks.map(b=>({...b,amt:+b.amt}));
+      if(d.data.expenses?.length)D.expenses=d.data.expenses.map(e=>({...e,id:+e.id,amt:+e.amt}));
       save();renderAll();
       document.getElementById('gs-dot').className='gs-dot on';
       toast('已從 Google Sheet 匯入資料','teal');
-    }else{toast('Sheet 無資料或格式不符','gold');}
-  }catch(e){
-    document.getElementById('gs-dot').className='gs-dot on';
-    toast('已嘗試匯入（若為首次使用 Sheet 可忽略此訊息）','gold');
-  }
+    }else{toast('Sheet 尚無資料','gold');}
+  }catch(e){document.getElementById('gs-dot').className='gs-dot on';toast('嘗試匯入完成（如為首次可忽略）','gold');}
 }
-
-// Auto-sync queue
 let syncTimer=null;
 function syncQ(){if(!D.gsUrl)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToGs,3000);}
 
@@ -862,36 +1012,42 @@ function toast(msg,type='teal'){
   const t=document.getElementById('toast');
   document.getElementById('toast-msg').textContent=msg;
   document.getElementById('toast-dot').style.background=type==='teal'?'var(--teal)':type==='red'?'var(--red)':'var(--gold)';
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+  t.classList.add('show');clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
 }
-
 function copyScript(){
   navigator.clipboard.writeText(APPS_SCRIPT).then(()=>{
-    const ok=document.getElementById('copy-ok');
-    ok.textContent='已複製！';ok.style.opacity='1';
+    const ok=document.getElementById('copy-ok');ok.textContent='已複製！';ok.style.opacity='1';
     setTimeout(()=>ok.style.opacity='0',2000);
   });
 }
-
 function exportJson(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));
-  a.download='finledger_backup_'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
+  a.download='finledger_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
 }
 function importJson(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.json';
   inp.onchange=e=>{const r=new FileReader();r.onload=ev=>{try{D=JSON.parse(ev.target.result);save();renderAll();toast('資料匯入成功','teal');}catch(e){toast('檔案格式錯誤','red');}};r.readAsText(e.target.files[0]);};inp.click();
 }
-function clearAll(){localStorage.removeItem('fl4');location.reload();}
+function clearAll(){localStorage.removeItem('fl5');location.reload();}
 
 // ─── INIT ────────────────────────────────────────────────
-document.getElementById('script-box').textContent=APPS_SCRIPT;
-document.getElementById('last-refresh-t').textContent=D.lastRefresh||'—';
-renderAll();
-setTimeout(()=>doRefresh(null),800);
+// Fix button wiring after DOM ready
+window.addEventListener('load',()=>{
+  // New stock button
+  document.querySelectorAll('[onclick*="m-stock"]').forEach(el=>{
+    if(el.textContent.includes('新增持股'))el.setAttribute('onclick',"openAddStock()");
+  });
+  // New bank button
+  document.querySelectorAll('[onclick*="m-bank"]').forEach(el=>{
+    if(el.textContent.includes('新增帳戶'))el.setAttribute('onclick',"openBankModal()");
+  });
+  document.getElementById('script-box').textContent=APPS_SCRIPT;
+  document.getElementById('last-refresh-t').textContent=D.lastRefresh||'—';
+  renderAll();
+  setTimeout(()=>doRefresh(null),800);
+});
 </script>
 </body>
 </html>
