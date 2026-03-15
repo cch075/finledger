@@ -266,7 +266,8 @@ var bTWD=function(){return D.banks.reduce(function(s,b){return s+t2w(b.amt,b.cur
 var gExp=function(ym){return D.expenses.filter(function(e){return e.date.startsWith(ym);});};
 var gInc=function(ym){return D.incomes.filter(function(i){return i.date.startsWith(ym);});};
 var sAmt=function(arr){return arr.reduce(function(s,x){return s+x.amt;},0);};
-var ndDate=function(v){if(!v)return'';if(v instanceof Date)return v.toISOString().split('T')[0];if(typeof v==='string'){if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v;var m=v.match(/Date\((\d+),(\d+),(\d+)\)/);if(m)return m[1]+'-'+String(+m[2]+1).padStart(2,'0')+'-'+String(+m[3]).padStart(2,'0');var d=new Date(v);if(!isNaN(d.getTime()))return d.toISOString().split('T')[0];return v;}if(typeof v==='number'){return new Date(Math.round((v-25569)*86400000)).toISOString().split('T')[0];}return String(v);};
+var ndDate=function(v){if(!v)return'';if(v instanceof Date){var dv=v;return dv.getFullYear()+'-'+String(dv.getMonth()+1).padStart(2,'0')+'-'+String(dv.getDate()).padStart(2,'0');}if(typeof v==='string'){if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v;var m=v.match(/Date\((\d+),(\d+),(\d+)\)/);if(m)return m[1]+'-'+String(+m[2]+1).padStart(2,'0')+'-'+String(+m[3]).padStart(2,'0');var ds=new Date(v.length===10?v+'T12:00:00':v);if(!isNaN(ds.getTime())){return ds.getFullYear()+'-'+String(ds.getMonth()+1).padStart(2,'0')+'-'+String(ds.getDate()).padStart(2,'0');}return v;}if(typeof v==='number'){var dn=new Date(Math.round((v-25569)*86400000));return dn.getFullYear()+'-'+String(dn.getMonth()+1).padStart(2,'0')+'-'+String(dn.getDate()).padStart(2,'0');}return String(v);};
+function localToday(){var n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
 
 function oMo(id){document.getElementById(id).classList.add('sh');}
 function cMo(id){document.getElementById(id).classList.remove('sh');}
@@ -336,7 +337,7 @@ function oIncMo(idx){
   document.getElementById('ipwarn').style.display='none';
   fillBkSel('ic5',isE?D.incomes[eIncI].depBk:'');
   if(isE){var inc=D.incomes[eIncI];document.getElementById('ic0').value=inc.cat;document.getElementById('ic1').value=inc.cur||'TWD';document.getElementById('ic2').value=inc.rawAmt||inc.amt;document.getElementById('ic3').value=inc.date;document.getElementById('ic4').value=inc.desc;document.getElementById('ic5').value=inc.depBk||'';document.getElementById('ic6').value=inc.dep||0;document.getElementById('iclb').textContent='金額('+(inc.cur||'TWD')+')';if(inc.depBk!=='')document.getElementById('idepf').style.display='';}
-  else{document.getElementById('ic1').value='TWD';document.getElementById('ic2').value='';document.getElementById('ic3').value=new Date().toISOString().split('T')[0];document.getElementById('ic4').value='';document.getElementById('ic5').value='';document.getElementById('ic6').value='';document.getElementById('iclb').textContent='金額(TWD)';}
+  else{document.getElementById('ic1').value='TWD';document.getElementById('ic2').value='';document.getElementById('ic3').value=localToday();document.getElementById('ic4').value='';document.getElementById('ic5').value='';document.getElementById('ic6').value='';document.getElementById('iclb').textContent='金額(TWD)';}
   uDepHint();oMo('mInc');
 }
 
@@ -373,7 +374,7 @@ function oExpMo(idx){
   document.getElementById('mett').textContent=isE?'編輯支出':'記錄支出';
   document.getElementById('mets').textContent=isE?'儲存':'記錄';
   if(isE){var e=D.expenses[eExpI];document.getElementById('ec0').value=e.cat;document.getElementById('ec1').value=e.amt;document.getElementById('ec2').value=e.date;document.getElementById('ec3').value=e.desc;}
-  else{document.getElementById('ec1').value='';document.getElementById('ec2').value=new Date().toISOString().split('T')[0];document.getElementById('ec3').value='';}
+  else{document.getElementById('ec1').value='';document.getElementById('ec2').value=localToday();document.getElementById('ec3').value='';}
   oMo('mExp');
 }
 
@@ -456,7 +457,7 @@ function rLiab(){
   var byCat={};exps.forEach(function(e){byCat[e.cat]=(byCat[e.cat]||0)+e.amt;});
   document.getElementById('catb').innerHTML=Object.entries(byCat).sort(function(a,b){return b[1]-a[1];}).map(function(kv){var cat=kv[0],amt=kv[1],pct=total>0?Math.round(amt/total*100):0;return'<div class="cb2"><div class="bh"><span style="font-size:13px;color:var(--t2)">'+EC[cat].i+' '+EC[cat].l+'</span><span style="display:flex;align-items:center;gap:7px"><span style="font-family:var(--fm);font-size:13px">'+fmt(amt)+'</span><span style="font-size:12px;color:var(--tl);font-weight:600">'+pct+'%</span></span></div><div class="bt"><div class="bf" style="width:'+pct+'%;background:'+EC[cat].c+'"></div></div></div>';}).join('')||'<div style="text-align:center;padding:18px 0;color:var(--t3)">本月尚無支出</div>';
   var byDay={};exps.forEach(function(e){if(!byDay[e.date])byDay[e.date]=[];byDay[e.date].push(e);});
-  var DOW=['日','一','二','三','四','五','六'],today=new Date().toISOString().split('T')[0],yesterday=new Date(Date.now()-86400000).toISOString().split('T')[0];
+  var DOW=['日','一','二','三','四','五','六'],today=localToday(),yesterday=(function(){var y=new Date();y.setDate(y.getDate()-1);return y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');}());
   var html='';
   Object.keys(byDay).sort(function(a,b){return b.localeCompare(a);}).forEach(function(day){
     var de=byDay[day].sort(function(a,b){return a.id-b.id;}),dt=sAmt(de),d=new Date(day+'T00:00:00');
@@ -648,7 +649,7 @@ function uGsUi(){
 async function cGs(){var url=document.getElementById('gsurl').value.trim();if(!url){toast('請貼上URL','r');return;}D.gsUrl=url;sv();uGsUi();await tGs();}
 async function tGs(){if(!D.gsUrl){toast('請先輸入URL','r');return;}toast('測試中…','g');try{await fetch(D.gsUrl+'?action=ping');toast('連線成功','t');}catch(e){toast('連線成功（CORS正常）','t');}}
 function bldPayload(sheet,arr,fields){return{sheet:sheet,headers:fields,rows:arr.map(function(o){return fields.map(function(f){return o[f]!==undefined?o[f]:'';});})};}
-async function pushGs(){
+async async function pushGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','r');return;}
   D.lastGsSync=new Date().toISOString();sv();
   document.getElementById('gsd').className='gsd sy';
@@ -661,7 +662,7 @@ async function pushGs(){
     document.getElementById('gsd').className='gsd on';toast('已同步至 Google Sheet','t');
   }catch(e){document.getElementById('gsd').className='gsd';toast('同步失敗','r');}
 }
-async function pullGs(){
+async async function pullGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','r');return;}
   document.getElementById('gsd').className='gsd sy';
   try{
