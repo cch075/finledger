@@ -1,0 +1,26 @@
+{
+  "name": "FinLedger 財務追蹤器",
+  "short_name": "FinLedger",
+  "description": "個人財務追蹤器 — 台股持倉、銀行存款、收支記帳",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1929",
+  "theme_color": "#0B1929",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%2300C9A7'/><polyline points='32,132 68,84 96,108 132,54 160,72' stroke='%230B1929' stroke-width='18' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%2300C9A7'/><polyline points='80,340 180,210 256,278 348,138 432,186' stroke='%230B1929' stroke-width='44' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "lang": "zh-TW"
+}

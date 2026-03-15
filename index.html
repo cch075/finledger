@@ -2,8 +2,17 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <title>FinLedger · 財務追蹤器</title>
+<meta name="description" content="個人財務追蹤器 — 台股持倉、銀行存款、收支記帳"/>
+<meta name="theme-color" content="#0B1929"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="FinLedger"/>
+<link rel="manifest" href="manifest.json"/>
+<!-- Apple touch icon (inline SVG → data URI) -->
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF0mlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4xLWMwMDEgNzkuYTg3MzE5NywgMjAyMy8wNi8yNS0yMzowNToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDI1LjAgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6YzBjNjA4ZTItNzQ3ZS00ZTU5LTkzMTYtZjg4MzhmNjE4ZDc4IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOmMwYzYwOGUyLTc0N2UtNGU1OS05MzE2LWY4ODM4ZjYxOGQ3OCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOmMwYzYwOGUyLTc0N2UtNGU1OS05MzE2LWY4ODM4ZjYxOGQ3OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpjMGM2MDhlMi03NDdlLTRlNTktOTMxNi1mODgzOGY2MThkNzgiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4B//79AAAB6UlEQVR4nO3BMQEAAADCoPVP7WsIoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeAMBuAABHgAAAABJRU5ErkJggg=="/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2300C9A7'/><polyline points='6,22 11,14 16,18 22,9 27,12' stroke='%230B1929' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -11,8 +20,8 @@
 :root{--navy:#0B1929;--navy2:#0F2238;--navy3:#162D47;--navy4:#1E3A57;--teal:#00C9A7;--teal2:#00A688;--teal-glow:rgba(0,201,167,0.12);--gold:#C9A84C;--red:#F05252;--red-bg:rgba(240,82,82,0.1);--green:#10B981;--green-bg:rgba(16,185,129,0.1);--blue:#4DA6FF;--blue-bg:rgba(77,166,255,0.1);--purple:#A78BFA;--purple-bg:rgba(167,139,250,0.1);--text:#E8EEF4;--text2:#8FA8C0;--text3:#4A6A85;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--card:#0F2238;--r:8px;--r2:12px;--r3:16px;--font-display:'DM Serif Display',serif;--font-body:'Noto Sans TC',sans-serif;--font-mono:'DM Mono',monospace;}
 html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(--font-body);font-size:14px;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--navy4);border-radius:2px}
-.app{display:flex;flex-direction:column;min-height:100vh}
-.topbar{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:50}
+.app{display:flex;flex-direction:column;min-height:100vh;min-height:-webkit-fill-available}
+.topbar{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 24px;padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right));display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:50;padding-top:env(safe-area-inset-top)}
 .logo{display:flex;align-items:center;gap:10px;margin-right:28px}
 .logo-mark{width:32px;height:32px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .logo-text{font-family:var(--font-display);font-size:16px}
@@ -273,6 +282,19 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 
 <!-- MODAL EXPENSE -->
 <div class="overlay" id="m-expense"><div class="modal"><button class="modal-close" onclick="closeModal('m-expense')">✕ 關閉</button><h2 id="m-expense-title">記錄支出</h2><div class="field"><label>類別</label><select id="e-cat"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="other">📌 其他</option></select></div><div class="field-row"><div class="field"><label>金額（NT$）</label><input id="e-amt" type="number" placeholder="350"/></div><div class="field"><label>日期</label><input id="e-date" type="date"/></div></div><div class="field"><label>說明</label><input id="e-desc" type="text" placeholder="例如：午餐"/></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-expense')">取消</button><button class="btn btn-primary" id="e-submit" onclick="submitExpense()">記錄</button></div></div></div>
+
+<!-- BACKUP REMINDER BANNER -->
+<div id="backup-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(90deg,#0F2238,#162D47);border-bottom:2px solid var(--teal);padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:10px">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#00C9A7" stroke-width="1.4"/><line x1="8" y1="5" x2="8" y2="9" stroke="#00C9A7" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="#00C9A7"/></svg>
+    <span style="font-size:12px;color:var(--text2)" id="backup-msg">建議備份：已超過 7 天未同步至 Google Sheet</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-sm" style="border-color:var(--teal);color:var(--teal)" onclick="pushToGs();hideBanner()">立即同步到 Sheet</button>
+    <button class="btn btn-sm" onclick="exportJson();hideBanner()">匯出 JSON</button>
+    <button class="btn btn-sm" onclick="hideBanner()" style="color:var(--text3)">稍後提醒</button>
+  </div>
+</div>
 
 <div class="toast" id="toast"><div class="toast-dot" id="toast-dot"></div><span id="toast-msg"></span></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -784,8 +806,53 @@ function clearAll(){localStorage.removeItem(SK);location.reload();}
 document.getElementById('script-box').textContent=APPS_SCRIPT;
 document.getElementById('last-refresh-t').textContent=D.lastRefresh||'—';
 ['dashboard','assets','liabilities','charts','settings'].forEach(p=>document.getElementById('pg-'+p).style.display='none');
+
+// ── BACKUP REMINDER ──
+function hideBanner(){
+  const b=document.getElementById('backup-banner');
+  if(b)b.style.display='none';
+  D.lastBannerDismiss=new Date().toISOString();save();
+}
+function checkBackupReminder(){
+  const banner=document.getElementById('backup-banner');
+  if(!banner)return;
+  const now=Date.now();
+  if(D.lastBannerDismiss&&(now-new Date(D.lastBannerDismiss).getTime())<3*86400000)return;
+  const lastSync=D.lastGsSync?new Date(D.lastGsSync).getTime():0;
+  const lastExport=D.lastJsonExport?new Date(D.lastJsonExport).getTime():0;
+  const lastBackup=Math.max(lastSync,lastExport);
+  const daysSince=lastBackup>0?(now-lastBackup)/86400000:999;
+  const msg=document.getElementById('backup-msg');
+  if(daysSince>7){
+    if(msg)msg.textContent=`已 ${Math.floor(daysSince)} 天未備份，建議同步至 Google Sheet 或匯出 JSON`;
+    banner.style.display='flex';
+  } else if(!D.gsUrl&&daysSince>3){
+    if(msg)msg.textContent='尚未連結 Google Sheet，建議匯出 JSON 備份保護資料';
+    banner.style.display='flex';
+  }
+}
+
+// Track export/sync timestamps
+const _origExport=exportJson;
+exportJson=function(){_origExport();D.lastJsonExport=new Date().toISOString();save();hideBanner();};
+const _origPush=pushToGs;
+pushToGs=async function(){await _origPush();D.lastGsSync=new Date().toISOString();save();};
+
+// ── SERVICE WORKER (PWA offline) ──
+if('serviceWorker' in navigator){
+  const swCode=`const C='fl-v1';
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.add('/')));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))));});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res.status===200){const rc=res.clone();caches.open(C).then(c=>c.put(e.request,rc));}return res;}).catch(()=>caches.match('/'))));});`;
+  try{
+    const blob=new Blob([swCode],{type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+  }catch(e){}
+}
+
 goto('dashboard');
 setTimeout(doRefresh,1000);
+setTimeout(checkBackupReminder,4000);
 </script>
 </body>
 </html>
