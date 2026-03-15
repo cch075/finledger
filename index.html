@@ -207,7 +207,7 @@ html,body{height:100%;background:var(--n0);color:var(--t1);font-family:var(--fb)
     <div class="card"><div class="ch"><span class="ct">各類別佔比</span></div><div class="cb" id="catb"></div></div>
     <div class="card"><div class="ch"><span class="ct">支出明細</span><select id="expsm" onchange="rLiab()" class="sel"></select></div><div class="cb" style="max-height:500px;overflow-y:auto" id="expl"></div></div>
   </div>
-  <div class="card"><div class="ch"><span class="ct">本週每日支出</span><span style="font-size:11px;color:var(--t3)" id="wrl"></span></div><div class="cb"><div class="cw" style="height:150px"><canvas id="cWeek"></canvas></div></div></div>
+  <div class="card"><div class="ch"><span class="ct">每日支出</span><span style="font-size:11px;color:var(--t3)" id="wrl"></span><div style="display:flex;align-items:center;gap:6px;margin-left:auto"><button class="btn bsm" onclick="wkOff--;rWeekBar()" title="上一週">&#8592;</button><button class="btn bsm" id="wkTodayBtn" onclick="wkOff=0;rWeekBar()" style="display:none">本週</button><button class="btn bsm" onclick="wkOff++;if(wkOff>0)wkOff=0;rWeekBar()" title="下一週">&#8594;</button></div></div><div class="cb"><div class="cw" style="height:150px"><canvas id="cWeek"></canvas></div></div></div>
 </div>
 <div id="pg3" style="display:none">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap"><span style="font-size:11px;color:var(--t2);font-weight:500">圖表月份</span><select id="chm" onchange="rCharts()" class="sel"></select><span style="font-size:11px;color:var(--t3)">影響支出/收入分類</span></div>
@@ -534,20 +534,25 @@ function rCharts(){
   chs.pnl=new Chart(document.getElementById('cPnl').getContext('2d'),{type:'bar',data:{labels:pd.map(function(d){return d.name;}),datasets:[{data:pd.map(function(d){return d.pnl;}),backgroundColor:pd.map(function(d){return d.pnl>=0?'rgba(52,211,153,.3)':'rgba(248,113,113,.3)';}),borderColor:pd.map(function(d){return d.pnl>=0?'#34D399':'#F87171';}),borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var d=pd[ctx.dataIndex],pct=d.cost>0?((d.pnl/d.cost)*100).toFixed(1):0;return' '+fmt(d.pnl)+' ('+pct+'%)';}}}},scales:{y:{ticks:{color:tc,callback:function(v){return'NT$'+(Math.abs(v)/1000).toFixed(0)+'k';}},grid:{color:gc}},x:{ticks:{color:tc},grid:{display:false}}}}});
 }
 
-var wkCh=null;
+var wkCh=null,wkOff=0;
 function rWeekBar(){
   var canvas=document.getElementById('cWeek');if(!canvas)return;
-  var now=new Date(),dow=now.getDay(),mon=new Date(now);mon.setDate(now.getDate()-(dow===0?6:dow-1));mon.setHours(0,0,0,0);
-  // Use local date helper to avoid UTC timezone shift
-  function localDs(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-  var days=[],labs=[],DOW=['日','一','二','三','四','五','六'],tod=localDs(now);
-  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var ds=localDs(d);days.push(ds);labs.push(String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'\n'+DOW[d.getDay()]);}
-  var wl=document.getElementById('wrl');if(wl)wl.textContent=days[0].slice(5).replace('-','/')+'–'+days[6].slice(5).replace('-','/');
+  var now=new Date(),dow=now.getDay(),mon=new Date(now);
+  mon.setDate(now.getDate()-(dow===0?6:dow-1)+(wkOff*7));
+  mon.setHours(0,0,0,0);
+  function lds(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  var days=[],labs=[],DOW=['日','一','二','三','四','五','六'],tod=lds(now);
+  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var ds=lds(d);days.push(ds);labs.push(String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'\n'+DOW[d.getDay()]);}
+  var wl=document.getElementById('wrl');if(wl)wl.textContent=days[0].slice(5).replace('-','/')+' – '+days[6].slice(5).replace('-','/');
+  // Show/hide "本週" button
+  var todayBtn=document.getElementById('wkTodayBtn');
+  if(todayBtn)todayBtn.style.display=wkOff!==0?'':'none';
   var tots=days.map(function(ds){return D.expenses.filter(function(e){return e.date===ds;}).reduce(function(s,e){return s+e.amt;},0);});
   var bgc=days.map(function(ds){return ds===tod?'rgba(251,191,36,.9)':'rgba(251,191,36,.3)';});
   if(wkCh){try{wkCh.destroy();}catch(e){}}
-  wkCh=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:labs,datasets:[{data:tots,backgroundColor:bgc,borderColor:'#FBBF24',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return'NT$'+ctx.raw.toLocaleString();}}}},scales:{y:{ticks:{color:tc,callback:function(v){return'NT$'+(v/1000).toFixed(1)+'k';}},grid:{color:gc},beginAtZero:true},x:{ticks:{color:tc,font:{size:10}},grid:{display:false}}}}});
+  wkCh=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:labs,datasets:[{data:tots,backgroundColor:bgc,borderColor:'#FBBF24',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return'NT$'+ctx.raw.toLocaleString();}}}},scales:{y:{ticks:{color:'rgba(200,220,240,.8)',callback:function(v){return'NT$'+(v/1000).toFixed(1)+'k';}},grid:{color:'rgba(255,255,255,.04)'},beginAtZero:true},x:{ticks:{color:'rgba(200,220,240,.8)',font:{size:10}},grid:{display:false}}}}});
 }
+
 
 function rSnap(){
   // Always compute from current data: stock market value + bank deposits
