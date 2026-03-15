@@ -284,7 +284,7 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 <div class="overlay" id="m-expense"><div class="modal"><button class="modal-close" onclick="closeModal('m-expense')">✕ 關閉</button><h2 id="m-expense-title">記錄支出</h2><div class="field"><label>類別</label><select id="e-cat"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="other">📌 其他</option></select></div><div class="field-row"><div class="field"><label>金額（NT$）</label><input id="e-amt" type="number" placeholder="350"/></div><div class="field"><label>日期</label><input id="e-date" type="date"/></div></div><div class="field"><label>說明</label><input id="e-desc" type="text" placeholder="例如：午餐"/></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-expense')">取消</button><button class="btn btn-primary" id="e-submit" onclick="submitExpense()">記錄</button></div></div></div>
 
 <!-- BACKUP REMINDER BANNER -->
-<div id="backup-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(90deg,#0F2238,#162D47);border-bottom:2px solid var(--teal);padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+<div id="backup-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(90deg,#0F2238,#162D47);border-bottom:2px solid var(--teal);padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
   <div style="display:flex;align-items:center;gap:10px">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#00C9A7" stroke-width="1.4"/><line x1="8" y1="5" x2="8" y2="9" stroke="#00C9A7" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="#00C9A7"/></svg>
     <span style="font-size:12px;color:var(--text2)" id="backup-msg">建議備份：已超過 7 天未同步至 Google Sheet</span>
@@ -824,7 +824,7 @@ function updateGsUi(){const on=!!D.gsUrl;document.getElementById('gs-dot').class
 async function connectGs(){const url=document.getElementById('gs-url-input').value.trim();if(!url){toast('請貼上 URL','red');return;}D.gsUrl=url;save();updateGsUi();await testGs();}
 async function testGs(){if(!D.gsUrl){toast('請先輸入 URL','red');return;}toast('測試中…','gold');try{await fetch(D.gsUrl+'?action=ping');toast('連線成功','teal');}catch(e){toast('連線成功（CORS 為預期行為）','teal');}}
 function buildPayload(sheet,arr,fields){return{sheet,headers:fields,rows:arr.map(o=>fields.map(f=>o[f]??''))};}
-async function pushToGs(){if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}document.getElementById('gs-dot').className='gs-dot syncing';try{const post=body=>fetch(D.gsUrl,{method:'POST',body:JSON.stringify(body)});await post(buildPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','priceDate']));await post(buildPayload('banks',D.banks,['name','type','amt','currency','color','note']));await post(buildPayload('expenses',D.expenses,['id','cat','amt','desc','date']));await post(buildPayload('incomes',D.incomes,['id','cat','amt','desc','date','deposit','depositBank']));document.getElementById('gs-dot').className='gs-dot on';toast('已同步至 Google Sheet','teal');}catch(e){document.getElementById('gs-dot').className='gs-dot';toast('同步失敗','red');}}
+async function pushToGs(){if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}D.lastGsSync=new Date().toISOString();save();document.getElementById('gs-dot').className='gs-dot syncing';try{const post=body=>fetch(D.gsUrl,{method:'POST',body:JSON.stringify(body)});await post(buildPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','priceDate']));await post(buildPayload('banks',D.banks,['name','type','amt','currency','color','note']));await post(buildPayload('expenses',D.expenses,['id','cat','amt','desc','date']));await post(buildPayload('incomes',D.incomes,['id','cat','amt','desc','date','deposit','depositBank']));document.getElementById('gs-dot').className='gs-dot on';toast('已同步至 Google Sheet','teal');}catch(e){document.getElementById('gs-dot').className='gs-dot';toast('同步失敗','red');}}
 async function pullFromGs(){if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}document.getElementById('gs-dot').className='gs-dot syncing';try{const r=await fetch(D.gsUrl+'?action=getAll');const d=await r.json();if(d.ok&&d.data){if(d.data.stocks?.length)D.stocks=d.data.stocks.map(s=>({...s,shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null}));if(d.data.banks?.length)D.banks=d.data.banks.map(b=>({currency:'TWD',...b,amt:+b.amt}));if(d.data.expenses?.length)D.expenses=d.data.expenses.map(e=>({...e,id:+e.id,amt:+e.amt,date:normalizeDate(e.date)}));if(d.data.incomes?.length)D.incomes=d.data.incomes.map(i=>({deposit:0,depositBank:'',...i,id:+i.id,amt:+i.amt,deposit:+(i.deposit||0),date:normalizeDate(i.date)}));save();renderAll();document.getElementById('gs-dot').className='gs-dot on';toast('已從 Sheet 匯入資料','teal');}else toast('Sheet 尚無資料','gold');}catch(e){document.getElementById('gs-dot').className='gs-dot on';toast('嘗試匯入完成','gold');}}
 let syncTimer=null;
 function syncQ(){if(!D.gsUrl)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToGs,3000);}
@@ -832,7 +832,7 @@ function syncQ(){if(!D.gsUrl)return;clearTimeout(syncTimer);syncTimer=setTimeout
 let toastTimer=null;
 function toast(msg,type='teal'){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;document.getElementById('toast-dot').style.background=type==='red'?'var(--red)':type==='gold'?'var(--gold)':'var(--teal)';t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3200);}
 function copyScript(){navigator.clipboard.writeText(APPS_SCRIPT).then(()=>{const ok=document.getElementById('copy-ok');ok.textContent='已複製！';ok.style.opacity='1';setTimeout(()=>ok.style.opacity='0',2000);});}
-function exportJson(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));a.download='finledger_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function exportJson(){D.lastJsonExport=new Date().toISOString();save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));a.download='finledger_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
 function importJson(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const r=new FileReader();r.onload=ev=>{try{D=JSON.parse(ev.target.result);D.banks=D.banks.map(b=>({currency:'TWD',...b}));D.incomes=(D.incomes||[]).map(i=>({deposit:0,depositBank:'',...i}));save();renderAll();toast('匯入成功','teal');}catch(e){toast('格式錯誤','red');}};r.readAsText(e.target.files[0]);};inp.click();}
 function clearAll(){localStorage.removeItem(SK);location.reload();}
 
@@ -866,10 +866,8 @@ function checkBackupReminder(){
 }
 
 // Track export/sync timestamps
-const _origExport=exportJson;
-exportJson=function(){_origExport();D.lastJsonExport=new Date().toISOString();save();hideBanner();};
-const _origPush=pushToGs;
-pushToGs=async function(){await _origPush();D.lastGsSync=new Date().toISOString();save();};
+// Track last sync time directly when buttons are pressed (no fragile overrides)
+document.addEventListener('DOMContentLoaded',()=>{});
 
 // ── SERVICE WORKER (PWA offline) ──
 if('serviceWorker' in navigator){
