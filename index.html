@@ -189,6 +189,7 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
       <div class="card-body" id="dash-cashflow"></div>
     </div>
   </div>
+  <div class="card"><div class="card-header"><span class="card-title">總資產歷史走勢</span><span style="font-size:11px;color:var(--text3)">股票市值 + 銀行存款（每日快照）</span></div><div class="card-body"><div class="chart-wrap" style="height:200px"><canvas id="c-assets-line"></canvas></div></div></div>
 </div>
 
 <!-- ASSETS -->
@@ -229,6 +230,7 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
     <div class="card"><div class="card-header"><span class="card-title">各類別佔比</span></div><div class="card-body" id="cat-bars"></div></div>
     <div class="card"><div class="card-header"><span class="card-title">支出明細</span><select id="filter-month" onchange="renderLiab()" class="sel-sm"></select></div><div class="card-body" style="max-height:520px;overflow-y:auto" id="exp-list"></div></div>
   </div>
+  <div class="card"><div class="card-header"><span class="card-title">本週每日支出</span><span style="font-size:11px;color:var(--text3)" id="week-range-label"></span></div><div class="card-body"><div class="chart-wrap" style="height:160px"><canvas id="c-week-bar"></canvas></div></div></div>
 </div>
 
 <!-- CHARTS -->
@@ -267,7 +269,7 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 <!-- MODAL INCOME -->
 <div class="overlay" id="m-income"><div class="modal"><button class="modal-close" onclick="closeModal('m-income')">✕ 關閉</button><h2 id="m-income-title">記錄收入</h2><div class="field"><label>類別</label><select id="i-cat"><option value="salary">💼 薪資</option><option value="bonus">🎁 獎金 / Bonus</option><option value="stock_profit">📈 股票獲利</option><option value="dividend">💰 股息</option><option value="interest">🏦 利息</option><option value="rental">🏠 租金收入</option><option value="freelance">💻 接案 / 副業</option><option value="other_income">📌 其他</option></select></div><div class="field-row"><div class="field"><label>幣別</label><select id="i-currency" onchange="updateIncomeAmtHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option></select></div><div class="field"><label id="i-amt-label">金額（TWD）</label><input id="i-amt" type="number" placeholder="50000" oninput="updateIncomeAmtHint()"/></div></div>
 <div id="i-amt-hint" style="display:none;font-size:11px;color:var(--teal);margin:-8px 0 10px;padding:5px 10px;background:var(--teal-glow);border-radius:6px;border:1px solid rgba(0,201,167,0.15)"></div>
-<div class="field"><label>日期</label><input id="i-date" type="date"/></div><div class="field"><label>說明</label><input id="i-desc" type="text" placeholder="例如：3月薪資"/></div><div class="field"><label>存入銀行帳戶（選填）</label><select id="i-bank-sel"><option value="">— 不存入 —</option></select></div><div class="field" id="i-deposit-field" style="display:none"><label>存入金額（NT$，僅限正數）</label><input id="i-deposit" type="number" placeholder="0" min="0"/><div class="deposit-hint" id="deposit-hint"></div></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-income')">取消</button><button class="btn btn-primary" id="i-submit" onclick="submitIncome()">記錄</button></div></div></div>
+<div class="field"><label>日期</label><input id="i-date" type="date"/></div><div class="field"><label>說明</label><input id="i-desc" type="text" placeholder="例如：3月薪資"/></div><div class="field"><label>存入銀行帳戶（選填）</label><select id="i-bank-sel"><option value="">— 不存入 —</option></select></div><div class="field" id="i-deposit-field" style="display:none"><label>存入金額（NT$，僅限正數，不可超過收入金額）</label><input id="i-deposit" type="number" placeholder="0" min="0" oninput="validateDepositInput()"/><div class="deposit-hint" id="deposit-hint"></div><div id="deposit-warn" style="display:none;font-size:11px;color:var(--red);margin-top:4px;padding:4px 8px;background:var(--red-bg);border-radius:5px"></div></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-income')">取消</button><button class="btn btn-primary" id="i-submit" onclick="submitIncome()">記錄</button></div></div></div>
 
 <!-- MODAL EXPENSE -->
 <div class="overlay" id="m-expense"><div class="modal"><button class="modal-close" onclick="closeModal('m-expense')">✕ 關閉</button><h2 id="m-expense-title">記錄支出</h2><div class="field"><label>類別</label><select id="e-cat"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="other">📌 其他</option></select></div><div class="field-row"><div class="field"><label>金額（NT$）</label><input id="e-amt" type="number" placeholder="350"/></div><div class="field"><label>日期</label><input id="e-date" type="date"/></div></div><div class="field"><label>說明</label><input id="e-desc" type="text" placeholder="例如：午餐"/></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-expense')">取消</button><button class="btn btn-primary" id="e-submit" onclick="submitExpense()">記錄</button></div></div></div>
@@ -324,6 +326,19 @@ function assetTab(t){
 function updateCurrencyHint(){const cur=document.getElementById('b-currency').value;const amt=parseFloat(document.getElementById('b-amt').value)||0;document.getElementById('b-amt-label').textContent=`餘額（${cur}）`;const hint=document.getElementById('b-fx-hint');if(cur!=='TWD'&&amt>0){const twd=toTWD(amt,cur);hint.textContent=`≈ NT$${Math.round(twd).toLocaleString()} 台幣`;hint.style.display='block';}else hint.style.display='none';}
 
 // Bank selector in income modal
+function validateDepositInput(){
+  const currency=document.getElementById('i-currency').value;
+  const rawAmt=parseFloat(document.getElementById('i-amt').value)||0;
+  const amt=currency==='USD'?Math.round(rawAmt*(D.fxRates.USD||32.5)):rawAmt;
+  const dep=parseFloat(document.getElementById('i-deposit').value)||0;
+  const warn=document.getElementById('deposit-warn');
+  if(dep>amt&&amt>0){
+    warn.textContent=`存入金額（NT$${dep.toLocaleString()}）超過收入金額（NT$${Math.round(amt).toLocaleString()}），儲存時將自動調整`;
+    warn.style.display='block';
+  }else{
+    warn.style.display='none';
+  }
+}
 function updateIncomeAmtHint(){
   const cur=document.getElementById('i-currency').value;
   const amt=parseFloat(document.getElementById('i-amt').value)||0;
@@ -416,31 +431,37 @@ function submitIncome(){
   const dep=Math.max(0,parseFloat(document.getElementById('i-deposit').value)||0);
   const bankIdx=bankSelVal!==''?parseInt(bankSelVal):-1;
   if(isNaN(rawAmt)||!date){toast('請填寫金額與日期','red');return;}
+  // Clamp deposit to not exceed income amount (in TWD)
+  const depClamped=Math.min(dep,amt);
+  if(dep>amt){toast(`存入金額不可超過收入金額（NT$${Math.round(amt).toLocaleString()}），已自動調整`,'gold');}
+  const depFinal=depClamped;
   if(editIncIdx!==null){
     const old=D.incomes[editIncIdx];
     if(old.deposit>0&&old.depositBank!==''&&old.depositBank!==undefined){
       const oldBi=parseInt(old.depositBank);
       if(!isNaN(oldBi)&&D.banks[oldBi])D.banks[oldBi].amt=Math.max(0,D.banks[oldBi].amt-old.deposit);
     }
-    D.incomes[editIncIdx]={...D.incomes[editIncIdx],cat,amt,currency,rawAmt,desc,date,deposit:dep,depositBank:bankIdx>=0?String(bankIdx):''};
+    D.incomes[editIncIdx]={...D.incomes[editIncIdx],cat,amt,currency,rawAmt,desc,date,deposit:depFinal,depositBank:bankIdx>=0?String(bankIdx):''};
   }else{
-    D.incomes.push({id:D.nextIncId++,cat,amt,currency,rawAmt,desc,date,deposit:dep,depositBank:bankIdx>=0?String(bankIdx):''});
+    D.incomes.push({id:D.nextIncId++,cat,amt,currency,rawAmt,desc,date,deposit:depFinal,depositBank:bankIdx>=0?String(bankIdx):''});
   }
-  if(dep>0&&bankIdx>=0&&D.banks[bankIdx]){
-    D.banks[bankIdx].amt+=dep;
-    toast(`NT$${dep.toLocaleString()} 已累加至「${D.banks[bankIdx].name}」`,'teal');
+  if(depFinal>0&&bankIdx>=0&&D.banks[bankIdx]){
+    D.banks[bankIdx].amt+=depFinal;
+    toast(`NT$${depFinal.toLocaleString()} 已累加至「${D.banks[bankIdx].name}」`,'teal');
   }
   save();closeModal('m-income');
   buildIncomeMonthFilter();renderIncome();renderKpis();renderDashCashflow();syncQ();
 }
 function delIncome(id){
   const inc=D.incomes.find(i=>i.id===id);
-  if(inc&&inc.deposit>0){
-    const bi=typeof inc.depositBank==='number'?inc.depositBank:D.banks.findIndex(b=>b.name===String(inc.depositBank));
-    if(bi>=0&&bi<D.banks.length)D.banks[bi].amt=Math.max(0,D.banks[bi].amt-inc.deposit);
+  if(inc&&inc.deposit>0&&inc.depositBank!==''&&inc.depositBank!==undefined){
+    const bi=parseInt(inc.depositBank);
+    if(!isNaN(bi)&&bi>=0&&bi<D.banks.length){
+      D.banks[bi].amt=Math.max(0,D.banks[bi].amt-inc.deposit);
+    }
   }
   D.incomes=D.incomes.filter(i=>i.id!==id);
-  save();buildIncomeMonthFilter();renderIncome();renderKpis();renderBankList();syncQ();
+  save();buildIncomeMonthFilter();renderIncome();renderKpis();renderBankList();renderDashCashflow();syncQ();
 }
 
 // Expense modal - supports add & edit
@@ -635,11 +656,109 @@ function renderCharts(){
 }}}},scales:{y:{ticks:{color:tc,callback:v=>'NT$'+(Math.abs(v)/1000).toFixed(0)+'k'},grid:{color:gc}},x:{ticks:{color:tc},grid:{display:false}}}}});
 }
 
+// ─── WEEKLY BAR CHART (liabilities page) ─────────────────
+let weekBarChart=null;
+function renderWeekBar(){
+  const canvas=document.getElementById('c-week-bar');
+  if(!canvas)return;
+  // Get current week: Mon–Sun containing today
+  const now=new Date();
+  const dayOfWeek=now.getDay(); // 0=Sun
+  const monday=new Date(now);
+  monday.setDate(now.getDate()-(dayOfWeek===0?6:dayOfWeek-1));
+  monday.setHours(0,0,0,0);
+  const days=[];
+  const labels=[];
+  const DOW=['日','一','二','三','四','五','六'];
+  const todayStr=now.toISOString().split('T')[0];
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    days.push(ds);
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    const dd2=String(d.getDate()).padStart(2,'0');
+    labels.push(`${mm}/${dd2}\n${DOW[d.getDay()]}`);
+  }
+  // Update week range label
+  const wl=document.getElementById('week-range-label');
+  if(wl)wl.textContent=`${days[0].slice(5).replace('-','/')} – ${days[6].slice(5).replace('-','/')}`;
+  const totals=days.map(ds=>D.expenses.filter(e=>e.date===ds).reduce((s,e)=>s+e.amt,0));
+  const bgColors=days.map(ds=>ds===todayStr?'rgba(251,191,36,0.9)':'rgba(251,191,36,0.35)');
+  const borderColors=days.map(()=>'#FBBF24');
+  const tc='rgba(200,220,240,0.8)',gc='rgba(255,255,255,0.04)';
+  if(weekBarChart)weekBarChart.destroy();
+  weekBarChart=new Chart(canvas.getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{data:totals,backgroundColor:bgColors,borderColor:borderColors,borderWidth:1.5,borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`NT$${ctx.raw.toLocaleString()}`}}},
+      scales:{y:{ticks:{color:tc,callback:v=>'NT$'+(v/1000).toFixed(1)+'k'},grid:{color:gc},beginAtZero:true},
+              x:{ticks:{color:tc,font:{size:11}},grid:{display:false}}}}
+  });
+}
+
+// ─── ASSET SNAPSHOTS & LINE CHART (dashboard) ────────────
+function recordAssetSnapshot(){
+  if(!D.assetSnapshots)D.assetSnapshots={};
+  const today=new Date().toISOString().split('T')[0];
+  const total=stockMV()+bankTotalTWD();
+  if(total>0)D.assetSnapshots[today]=Math.round(total);
+  save();
+}
+let assetLineChart=null;
+function renderAssetsLineChart(){
+  const canvas=document.getElementById('c-assets-line');
+  if(!canvas)return;
+  if(!D.assetSnapshots)D.assetSnapshots={};
+  // Always record today's snapshot
+  recordAssetSnapshot();
+  // Build last 30 days
+  const days=[],vals=[];
+  const now=new Date();
+  for(let i=29;i>=0;i--){
+    const d=new Date(now);d.setDate(now.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    days.push(ds);
+    vals.push(D.assetSnapshots[ds]||null);
+  }
+  // Forward-fill nulls so line doesn't break on days without data
+  let last=null;
+  const filled=vals.map(v=>{if(v!==null)last=v;return last;});
+  const labels=days.map(ds=>{
+    const d=new Date(ds+'T00:00:00');
+    return`${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  });
+  // Thin out labels: show only every 5th
+  const sparseLabels=labels.map((l,i)=>i%5===0||i===labels.length-1?l:'');
+  const tc='rgba(200,220,240,0.8)',gc='rgba(255,255,255,0.04)';
+  if(assetLineChart)assetLineChart.destroy();
+  assetLineChart=new Chart(canvas.getContext('2d'),{
+    type:'line',
+    data:{labels:sparseLabels,datasets:[{
+      label:'總資產',data:filled,
+      borderColor:'#34D399',borderWidth:2,
+      backgroundColor:'rgba(52,211,153,0.08)',
+      fill:true,tension:0.35,
+      pointRadius:days.map((ds,i)=>{
+        if(ds===new Date().toISOString().split('T')[0])return 5;
+        return vals[i]!==null&&(i===0||vals[i-1]===null)?3:0;
+      }),
+      pointBackgroundColor:'#34D399',
+      spanGaps:true
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw?`NT$${ctx.raw.toLocaleString()}`:'—'}}},
+      scales:{y:{ticks:{color:tc,callback:v=>'NT$'+(v/1000000).toFixed(2)+'M'},grid:{color:gc}},
+              x:{ticks:{color:tc,font:{size:10},maxRotation:0},grid:{display:false}}}}
+  });
+}
+
 function renderAll(){
   renderKpis();renderDashStocks();
   buildDashMonthFilter();renderDashCashflow();
+  renderAssetsLineChart();
   if(curPage==='assets'){renderStkTable();renderBankList();}
-  if(curPage==='liabilities'){buildMonthFilter();renderLiab();}
+  if(curPage==='liabilities'){buildMonthFilter();renderLiab();renderWeekBar();}
   updateGsUi();
 }
 
