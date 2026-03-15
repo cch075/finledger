@@ -702,6 +702,51 @@ go(0);
 setTimeout(doRefresh,1000);
 setTimeout(chkBnr,4000);
 
+// Auto-sync from Sheet on startup if GS URL is set
+// Runs silently after 2s - won't block initial render
+if(D.gsUrl){
+  setTimeout(function(){
+    // Pull latest data from Sheet, then re-render
+    var dot=document.getElementById('gsd');
+    if(dot)dot.className='gsd sy';
+    fetch(D.gsUrl+'?action=getAll')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.ok&&d.data){
+          if(d.data.stocks&&d.data.stocks.length){
+            D.stocks=d.data.stocks.map(function(s){
+              return Object.assign({},s,{shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null});
+            });
+          }
+          if(d.data.banks&&d.data.banks.length){
+            D.banks=d.data.banks.map(function(b){
+              return Object.assign({cur:'TWD'},b,{amt:+b.amt});
+            });
+          }
+          if(d.data.expenses&&d.data.expenses.length){
+            D.expenses=d.data.expenses.map(function(e){
+              return Object.assign({},e,{id:+e.id||e.id,amt:+e.amt,date:ndDate(e.date)});
+            });
+            var maxExp=D.expenses.reduce(function(m,e){return Math.max(m,+e.id||0);},0);
+            if(maxExp>0)D.nExp=maxExp+1;
+          }
+          if(d.data.incomes&&d.data.incomes.length){
+            D.incomes=d.data.incomes.map(function(i){
+              return Object.assign({dep:0,depBk:'',cur:'TWD',rawAmt:+i.amt},i,{id:+i.id||i.id,amt:+i.amt,dep:+(i.dep||0),date:ndDate(i.date)});
+            });
+            var maxInc=D.incomes.reduce(function(m,i){return Math.max(m,+i.id||0);},0);
+            if(maxInc>0)D.nInc=maxInc+1;
+          }
+          sv();rAll();
+          if(dot)dot.className='gsd on';
+        }
+      })
+      .catch(function(){
+        if(dot)dot.className=D.gsUrl?'gsd on':'gsd';
+      });
+  },2000);
+}
+
 
 </script>
 </body>
