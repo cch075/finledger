@@ -72,9 +72,10 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 .del-btn{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:3px 5px;border-radius:4px;font-size:12px;opacity:0;transition:opacity .15s;flex-shrink:0}
 .item:hover .del-btn,.bank-item:hover .del-btn{opacity:1}
 .del-btn:hover{color:var(--red)}
-.edit-inline-btn{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:3px 5px;border-radius:4px;font-size:11px;opacity:0;transition:opacity .15s;flex-shrink:0}
-.item:hover .edit-inline-btn{opacity:1}
+.edit-inline-btn{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:3px 5px;border-radius:4px;font-size:11px;flex-shrink:0}
 .edit-inline-btn:hover{color:var(--blue)}
+.item-actions{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:opacity .15s}
+.item:hover .item-actions{opacity:1}
 .cat-bar{margin-bottom:13px}
 .cat-bar-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
 .bar-track{height:3px;background:var(--navy3);border-radius:2px}
@@ -89,8 +90,8 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 .bank-amt-col{display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:6px}
 .bank-twn{font-family:var(--font-mono);font-size:13px;font-weight:500}
 .bank-orig{font-family:var(--font-mono);font-size:10px;color:var(--text3)}
-.edit-amt{background:transparent;border:1px solid transparent;border-radius:4px;padding:3px 8px;font-family:var(--font-mono);font-size:13px;color:var(--text);width:120px;text-align:right;transition:border-color .15s}
-.edit-amt:focus{border-color:var(--teal);outline:none;background:var(--navy3)}
+.edit-amt-display{background:transparent;border:1px solid transparent;border-radius:4px;padding:3px 8px;font-family:var(--font-mono);font-size:13px;color:var(--text);width:130px;text-align:right;transition:border-color .15s;cursor:text}
+.edit-amt-display:focus{border-color:var(--teal);outline:none;background:var(--navy3)}
 .btn{background:transparent;border:1px solid var(--border2);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;color:var(--text2);font-family:var(--font-body);transition:all .15s;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{color:var(--text);border-color:var(--teal)}
 .btn-primary{background:var(--teal);border-color:var(--teal);color:var(--navy);font-weight:600}
@@ -226,7 +227,7 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
   </div>
   <div class="grid2">
     <div class="card"><div class="card-header"><span class="card-title">各類別佔比</span></div><div class="card-body" id="cat-bars"></div></div>
-    <div class="card"><div class="card-header"><span class="card-title">支出明細</span><select id="filter-month" onchange="renderLiab()" class="sel-sm"></select></div><div class="card-body" style="max-height:380px;overflow-y:auto" id="exp-list"></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">支出明細</span><select id="filter-month" onchange="renderLiab()" class="sel-sm"></select></div><div class="card-body" style="max-height:520px;overflow-y:auto" id="exp-list"></div></div>
   </div>
 </div>
 
@@ -264,7 +265,9 @@ html,body{height:100%;background:var(--navy);color:var(--text);font-family:var(-
 <div class="overlay" id="m-bank"><div class="modal"><button class="modal-close" onclick="closeModal('m-bank')">✕ 關閉</button><h2 id="m-bank-title">新增銀行帳戶</h2><div class="field"><label>銀行名稱</label><input id="b-name" type="text" placeholder="例如：台灣銀行"/></div><div class="field-row"><div class="field"><label>帳戶類型</label><select id="b-type"><option>活期存款</option><option>定期存款</option><option>外幣帳戶</option><option>證券帳戶</option><option>其他</option></select></div><div class="field"><label>幣別</label><select id="b-currency" onchange="updateCurrencyHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option><option value="JPY">JPY 日幣</option><option value="COP">COP 哥倫比亞披索</option></select></div></div><div class="field"><label id="b-amt-label">餘額（TWD）</label><input id="b-amt" type="number" placeholder="500000" oninput="updateCurrencyHint()"/><div class="fx-info" id="b-fx-hint" style="margin-top:6px;display:none"></div></div><div class="field"><label>備註（選填）</label><textarea id="b-note" placeholder="例如：薪資入帳、緊急備用金…"></textarea></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-bank')">取消</button><button class="btn btn-primary" id="b-submit" onclick="submitBank()">新增</button></div></div></div>
 
 <!-- MODAL INCOME -->
-<div class="overlay" id="m-income"><div class="modal"><button class="modal-close" onclick="closeModal('m-income')">✕ 關閉</button><h2 id="m-income-title">記錄收入</h2><div class="field"><label>類別</label><select id="i-cat"><option value="salary">💼 薪資</option><option value="bonus">🎁 獎金 / Bonus</option><option value="stock_profit">📈 股票獲利</option><option value="dividend">💰 股息</option><option value="interest">🏦 利息</option><option value="rental">🏠 租金收入</option><option value="freelance">💻 接案 / 副業</option><option value="other_income">📌 其他</option></select></div><div class="field-row"><div class="field"><label>金額（NT$）</label><input id="i-amt" type="number" placeholder="50000"/></div><div class="field"><label>日期</label><input id="i-date" type="date"/></div></div><div class="field"><label>說明</label><input id="i-desc" type="text" placeholder="例如：3月薪資"/></div><div class="field"><label>存入銀行帳戶（選填）</label><select id="i-bank-sel"><option value="">— 不存入 —</option></select></div><div class="field" id="i-deposit-field" style="display:none"><label>存入金額（NT$，僅限正數）</label><input id="i-deposit" type="number" placeholder="0" min="0"/><div class="deposit-hint" id="deposit-hint"></div></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-income')">取消</button><button class="btn btn-primary" id="i-submit" onclick="submitIncome()">記錄</button></div></div></div>
+<div class="overlay" id="m-income"><div class="modal"><button class="modal-close" onclick="closeModal('m-income')">✕ 關閉</button><h2 id="m-income-title">記錄收入</h2><div class="field"><label>類別</label><select id="i-cat"><option value="salary">💼 薪資</option><option value="bonus">🎁 獎金 / Bonus</option><option value="stock_profit">📈 股票獲利</option><option value="dividend">💰 股息</option><option value="interest">🏦 利息</option><option value="rental">🏠 租金收入</option><option value="freelance">💻 接案 / 副業</option><option value="other_income">📌 其他</option></select></div><div class="field-row"><div class="field"><label>幣別</label><select id="i-currency" onchange="updateIncomeAmtHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option></select></div><div class="field"><label id="i-amt-label">金額（TWD）</label><input id="i-amt" type="number" placeholder="50000" oninput="updateIncomeAmtHint()"/></div></div>
+<div id="i-amt-hint" style="display:none;font-size:11px;color:var(--teal);margin:-8px 0 10px;padding:5px 10px;background:var(--teal-glow);border-radius:6px;border:1px solid rgba(0,201,167,0.15)"></div>
+<div class="field"><label>日期</label><input id="i-date" type="date"/></div><div class="field"><label>說明</label><input id="i-desc" type="text" placeholder="例如：3月薪資"/></div><div class="field"><label>存入銀行帳戶（選填）</label><select id="i-bank-sel"><option value="">— 不存入 —</option></select></div><div class="field" id="i-deposit-field" style="display:none"><label>存入金額（NT$，僅限正數）</label><input id="i-deposit" type="number" placeholder="0" min="0"/><div class="deposit-hint" id="deposit-hint"></div></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-income')">取消</button><button class="btn btn-primary" id="i-submit" onclick="submitIncome()">記錄</button></div></div></div>
 
 <!-- MODAL EXPENSE -->
 <div class="overlay" id="m-expense"><div class="modal"><button class="modal-close" onclick="closeModal('m-expense')">✕ 關閉</button><h2 id="m-expense-title">記錄支出</h2><div class="field"><label>類別</label><select id="e-cat"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="other">📌 其他</option></select></div><div class="field-row"><div class="field"><label>金額（NT$）</label><input id="e-amt" type="number" placeholder="350"/></div><div class="field"><label>日期</label><input id="e-date" type="date"/></div></div><div class="field"><label>說明</label><input id="e-desc" type="text" placeholder="例如：午餐"/></div><div class="modal-footer"><button class="btn" onclick="closeModal('m-expense')">取消</button><button class="btn btn-primary" id="e-submit" onclick="submitExpense()">記錄</button></div></div></div>
@@ -321,6 +324,17 @@ function assetTab(t){
 function updateCurrencyHint(){const cur=document.getElementById('b-currency').value;const amt=parseFloat(document.getElementById('b-amt').value)||0;document.getElementById('b-amt-label').textContent=`餘額（${cur}）`;const hint=document.getElementById('b-fx-hint');if(cur!=='TWD'&&amt>0){const twd=toTWD(amt,cur);hint.textContent=`≈ NT$${Math.round(twd).toLocaleString()} 台幣`;hint.style.display='block';}else hint.style.display='none';}
 
 // Bank selector in income modal
+function updateIncomeAmtHint(){
+  const cur=document.getElementById('i-currency').value;
+  const amt=parseFloat(document.getElementById('i-amt').value)||0;
+  document.getElementById('i-amt-label').textContent=`金額（${cur}）`;
+  const hint=document.getElementById('i-amt-hint');
+  if(cur==='USD'&&amt>0){
+    const twd=amt*(D.fxRates.USD||32.5);
+    hint.textContent=`≈ NT$${Math.round(twd).toLocaleString()} 台幣（1 USD = NT$${D.fxRates.USD?.toFixed(2)||'32.5'}）`;
+    hint.style.display='block';
+  }else hint.style.display='none';
+}
 function buildBankSelector(){
   const sel=document.getElementById('i-bank-sel');
   const cur=sel.value;
@@ -368,16 +382,22 @@ function openIncomeModal(idx=null){
   document.getElementById('i-submit').textContent=isEdit?'儲存':'記錄';
   buildBankSelector();
   document.getElementById('i-deposit-field').style.display='none';
+  document.getElementById('i-amt-hint').style.display='none';
   if(isEdit){
     const inc=D.incomes[idx];
     document.getElementById('i-cat').value=inc.cat;
+    document.getElementById('i-currency').value=inc.currency||'TWD';
     document.getElementById('i-amt').value=inc.amt;
+    document.getElementById('i-amt-label').textContent=`金額（${inc.currency||'TWD'}）`;
     document.getElementById('i-date').value=inc.date;
     document.getElementById('i-desc').value=inc.desc;
     document.getElementById('i-bank-sel').value=inc.depositBank!==undefined&&inc.depositBank!==''?inc.depositBank:'';
     document.getElementById('i-deposit').value=inc.deposit||0;
     if(inc.depositBank!==''){document.getElementById('i-deposit-field').style.display='';}
+    updateIncomeAmtHint();
   }else{
+    document.getElementById('i-currency').value='TWD';
+    document.getElementById('i-amt-label').textContent='金額（TWD）';
     document.getElementById('i-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('i-amt').value='';document.getElementById('i-desc').value='';
     document.getElementById('i-bank-sel').value='';document.getElementById('i-deposit').value='';
@@ -385,32 +405,43 @@ function openIncomeModal(idx=null){
   openModal('m-income');
 }
 function submitIncome(){
-  const cat=document.getElementById('i-cat').value,amt=parseFloat(document.getElementById('i-amt').value),desc=document.getElementById('i-desc').value.trim()||ICATS[cat].l,date=document.getElementById('i-date').value;
+  const cat=document.getElementById('i-cat').value;
+  const currency=document.getElementById('i-currency').value;
+  const rawAmt=parseFloat(document.getElementById('i-amt').value);
+  // Convert to TWD for storage
+  const amt=currency==='USD'?Math.round(rawAmt*(D.fxRates.USD||32.5)):rawAmt;
+  const desc=document.getElementById('i-desc').value.trim()||ICATS[cat].l;
+  const date=document.getElementById('i-date').value;
   const bankSelVal=document.getElementById('i-bank-sel').value;
   const dep=Math.max(0,parseFloat(document.getElementById('i-deposit').value)||0);
   const bankIdx=bankSelVal!==''?parseInt(bankSelVal):-1;
-  if(isNaN(amt)||!date){toast('請填寫金額與日期','red');return;}
+  if(isNaN(rawAmt)||!date){toast('請填寫金額與日期','red');return;}
   if(editIncIdx!==null){
-    // Edit mode: reverse old deposit first
     const old=D.incomes[editIncIdx];
     if(old.deposit>0&&old.depositBank!==''&&old.depositBank!==undefined){
-      const oldBankIdx=parseInt(old.depositBank);
-      if(!isNaN(oldBankIdx)&&D.banks[oldBankIdx])D.banks[oldBankIdx].amt=Math.max(0,D.banks[oldBankIdx].amt-old.deposit);
+      const oldBi=parseInt(old.depositBank);
+      if(!isNaN(oldBi)&&D.banks[oldBi])D.banks[oldBi].amt=Math.max(0,D.banks[oldBi].amt-old.deposit);
     }
-    D.incomes[editIncIdx]={...D.incomes[editIncIdx],cat,amt,desc,date,deposit:dep,depositBank:bankIdx>=0?String(bankIdx):''};
+    D.incomes[editIncIdx]={...D.incomes[editIncIdx],cat,amt,currency,rawAmt,desc,date,deposit:dep,depositBank:bankIdx>=0?String(bankIdx):''};
   }else{
-    D.incomes.push({id:D.nextIncId++,cat,amt,desc,date,deposit:dep,depositBank:bankIdx>=0?String(bankIdx):''});
+    D.incomes.push({id:D.nextIncId++,cat,amt,currency,rawAmt,desc,date,deposit:dep,depositBank:bankIdx>=0?String(bankIdx):''});
   }
-  // Apply deposit
   if(dep>0&&bankIdx>=0&&D.banks[bankIdx]){
     D.banks[bankIdx].amt+=dep;
     toast(`NT$${dep.toLocaleString()} 已累加至「${D.banks[bankIdx].name}」`,'teal');
   }
   save();closeModal('m-income');
-  // FIX #1: explicitly re-render income page after save
   buildIncomeMonthFilter();renderIncome();renderKpis();renderDashCashflow();syncQ();
 }
-function delIncome(id){D.incomes=D.incomes.filter(i=>i.id!==id);save();buildIncomeMonthFilter();renderIncome();renderKpis();syncQ();}
+function delIncome(id){
+  const inc=D.incomes.find(i=>i.id===id);
+  if(inc&&inc.deposit>0){
+    const bi=typeof inc.depositBank==='number'?inc.depositBank:D.banks.findIndex(b=>b.name===String(inc.depositBank));
+    if(bi>=0&&bi<D.banks.length)D.banks[bi].amt=Math.max(0,D.banks[bi].amt-inc.deposit);
+  }
+  D.incomes=D.incomes.filter(i=>i.id!==id);
+  save();buildIncomeMonthFilter();renderIncome();renderKpis();renderBankList();syncQ();
+}
 
 // Expense modal - supports add & edit
 let editExpIdx=null;
@@ -470,7 +501,7 @@ function renderBankList(){
   document.getElementById('bank-total-h').textContent=fmt(bankTotalTWD());
   document.getElementById('bank-list').innerHTML=D.banks.map((b,i)=>{
     const twd=toTWD(b.amt,b.currency);const showOrig=b.currency&&b.currency!=='TWD';
-    return`<div class="bank-item"><div class="bank-dot" style="background:${b.color}"></div><div class="bank-meta"><div class="bank-nm">${b.name}</div><div class="bank-tp">${b.type} · ${b.currency||'TWD'}</div>${b.note?`<div class="bank-note-txt">${b.note}</div>`:''}</div><div class="bank-amt-col"><div class="bank-twn">${fmt(twd)}</div>${showOrig?`<div class="bank-orig">${b.amt.toLocaleString(undefined,{maximumFractionDigits:2})} ${b.currency}</div>`:''}</div><input class="edit-amt" type="number" value="${b.amt}" title="直接編輯原幣餘額" onchange="D.banks[${i}].amt=parseFloat(this.value)||0;save();renderKpis();renderBankList();syncQ()"/><button class="btn btn-sm btn-edit" onclick="openBankModal(${i})">編輯</button><button class="del-btn" onclick="D.banks.splice(${i},1);save();renderAll()">✕</button></div>`;
+    return`<div class="bank-item"><div class="bank-dot" style="background:${b.color}"></div><div class="bank-meta"><div class="bank-nm">${b.name}</div><div class="bank-tp">${b.type} · ${b.currency||'TWD'}</div>${b.note?`<div class="bank-note-txt">${b.note}</div>`:''}</div><div class="bank-amt-col"><div class="bank-twn">${fmt(twd)}</div>${showOrig?`<div class="bank-orig">${b.amt.toLocaleString(undefined,{maximumFractionDigits:2})} ${b.currency}</div>`:''}</div><input class="edit-amt-display" type="text" value="${Number(b.amt).toLocaleString(undefined,{maximumFractionDigits:2})}" title="直接點擊編輯原幣餘額" onfocus="this.value=D.banks[${i}].amt;this.type='number'" onblur="this.type='text';D.banks[${i}].amt=parseFloat(this.value)||0;this.value=Number(D.banks[${i}].amt).toLocaleString(undefined,{maximumFractionDigits:2});save();renderKpis();renderBankList();syncQ()"/><button class="btn btn-sm btn-edit" onclick="openBankModal(${i})">編輯</button><button class="del-btn" onclick="D.banks.splice(${i},1);save();renderAll()">✕</button></div>`;
   }).join('')||'<div class="empty">尚無帳戶</div>';
 }
 
@@ -486,10 +517,12 @@ function renderIncome(){
   document.getElementById('income-total-h').textContent=fmt(total);
   const byCat={};incs.forEach(i=>byCat[i.cat]=(byCat[i.cat]||0)+i.amt);
   document.getElementById('income-cat-bars').innerHTML=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{const pct=total>0?Math.round(amt/total*100):0;return`<div class="cat-bar"><div class="cat-bar-hd"><span style="font-size:13px;color:var(--text2)">${ICATS[cat].i} ${ICATS[cat].l}</span><span style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--font-mono);font-size:13px">${fmt(amt)}</span><span style="font-size:12px;color:var(--green);font-weight:600">${pct}%</span></span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${ICATS[cat].c}"></div></div></div>`;}).join('')||'<div class="empty">本月尚無收入</div>';
-  // FIX #4: income list with edit button
-  document.getElementById('income-list').innerHTML=[...incs].reverse().map((inc,ri)=>{
+  // income list with edit button, sorted by date desc
+  document.getElementById('income-list').innerHTML=[...incs].sort((a,b)=>b.date.localeCompare(a.date)).map((inc,ri)=>{
     const idx=D.incomes.indexOf(inc);
-    return`<div class="item"><div class="item-icon" style="background:${ICATS[inc.cat].c}20">${ICATS[inc.cat].i}</div><div class="item-meta"><div class="item-name">${inc.desc}</div><div class="item-sub">${ICATS[inc.cat].l} · ${inc.date}${inc.deposit>0?' · 存入NT$'+inc.deposit.toLocaleString():''}</div></div><div class="item-amt-g">${fmt(inc.amt)}</div><button class="edit-inline-btn" onclick="openIncomeModal(${idx})" title="編輯">✏</button><button class="del-btn" onclick="delIncome(${inc.id})">✕</button></div>`;
+    const bankName=inc.depositBank!==''&&inc.depositBank!==undefined?D.banks[parseInt(inc.depositBank)]?.name||'':'';
+    const origLabel=inc.currency==='USD'&&inc.rawAmt?` · US$${inc.rawAmt.toLocaleString(undefined,{maximumFractionDigits:2})}`:'';
+    return`<div class="item"><div class="item-icon" style="background:${ICATS[inc.cat].c}20">${ICATS[inc.cat].i}</div><div class="item-meta"><div class="item-name">${inc.desc}</div><div class="item-sub">${ICATS[inc.cat].l} · ${inc.date}${origLabel}${inc.deposit>0?' · 存入NT$'+inc.deposit.toLocaleString()+(bankName?' → '+bankName:''):''}</div></div><div class="item-amt-g">${fmt(inc.amt)}</div><button class="edit-inline-btn" onclick="openIncomeModal(${idx})" title="編輯">✏</button><button class="del-btn" onclick="delIncome(${inc.id})">✕</button></div>`;
   }).join('')||'<div class="empty">無收入記錄</div>';
 }
 
@@ -505,11 +538,38 @@ function renderLiab(){
   document.getElementById('liab-total').textContent=fmt(total);
   const byCat={};exps.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amt);
   document.getElementById('cat-bars').innerHTML=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{const pct=total>0?Math.round(amt/total*100):0;return`<div class="cat-bar"><div class="cat-bar-hd"><span style="font-size:13px;color:var(--text2)">${ECATS[cat].i} ${ECATS[cat].l}</span><span style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--font-mono);font-size:13px">${fmt(amt)}</span><span style="font-size:12px;color:var(--teal);font-weight:600">${pct}%</span></span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${ECATS[cat].c}"></div></div></div>`;}).join('')||'<div class="empty">本月尚無支出</div>';
-  // FIX #4: expense list with edit button
-  document.getElementById('exp-list').innerHTML=[...exps].reverse().map(e=>{
-    const idx=D.expenses.indexOf(e);
-    return`<div class="item"><div class="item-icon" style="background:${ECATS[e.cat].c}20">${ECATS[e.cat].i}</div><div class="item-meta"><div class="item-name">${e.desc}</div><div class="item-sub">${ECATS[e.cat].l} · ${e.date}</div></div><div class="item-amt-r">${fmt(e.amt)}</div><button class="edit-inline-btn" onclick="openExpenseModal(${idx})" title="編輯">✏</button><button class="del-btn" onclick="delExp(${e.id})">✕</button></div>`;
-  }).join('')||'<div class="empty">無支出記錄</div>';
+
+  // Group by day, sorted newest first
+  const byDay={};
+  exps.forEach(e=>{if(!byDay[e.date])byDay[e.date]=[];byDay[e.date].push(e);});
+  const sortedDays=Object.keys(byDay).sort((a,b)=>b.localeCompare(a));
+  const DOW=['日','一','二','三','四','五','六'];
+  const today=new Date().toISOString().split('T')[0];
+  const yesterday=new Date(Date.now()-86400000).toISOString().split('T')[0];
+
+  let html='';
+  sortedDays.forEach(day=>{
+    const dayExps=byDay[day].sort((a,b)=>a.id-b.id);
+    const dayTotal=dayExps.reduce((s,e)=>s+e.amt,0);
+    const d=new Date(day+'T00:00:00');
+    const dow=DOW[d.getDay()];
+    const mmdd=`${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    let dayLabel=mmdd+` (${dow})`;
+    if(day===today)dayLabel='今天 '+mmdd;
+    else if(day===yesterday)dayLabel='昨天 '+mmdd;
+    // Week separator: show week label if Monday or first day of month
+    const isMonday=d.getDay()===1;
+    const isFirstOfMonth=d.getDate()===1;
+    html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 5px;border-bottom:1px solid var(--border2);margin-top:4px">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">${dayLabel}</span>
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--red)">${fmt(dayTotal)}</span>
+    </div>`;
+    dayExps.forEach(e=>{
+      const idx=D.expenses.indexOf(e);
+      html+=`<div class="item" style="padding:7px 0"><div class="item-icon" style="background:${ECATS[e.cat].c}20">${ECATS[e.cat].i}</div><div class="item-meta"><div class="item-name">${e.desc}</div><div class="item-sub">${ECATS[e.cat].l}</div></div><div class="item-amt-r">${fmt(e.amt)}</div><div class="item-actions"><button class="edit-inline-btn" onclick="openExpenseModal(${idx})" title="編輯">✏</button><button class="del-btn" onclick="delExp(${e.id})">✕</button></div></div>`;
+    });
+  });
+  document.getElementById('exp-list').innerHTML=html||'<div class="empty">無支出記錄</div>';
 }
 
 // CHARTS: legend table with labels + amounts + %
