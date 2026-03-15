@@ -577,10 +577,7 @@ function rAssetLine(){
     return '';
   });
   // Point: show dot for every day that has actual (non-null) data
-  var radii=vals.map(function(v,i){
-    if(v===null)return 0;
-    return i===vals.length-1?6:3;
-  });
+  var radii=vals.map(function(v){return v===null?0:4;});
   if(assetCh){try{assetCh.destroy();}catch(e){}}
   assetCh=new Chart(canvas.getContext('2d'),{
     type:'line',
