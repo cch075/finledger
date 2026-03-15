@@ -212,10 +212,10 @@ html,body{height:100%;background:var(--n0);color:var(--t1);font-family:var(--fb)
 <div id="pg3" style="display:none">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap"><span style="font-size:11px;color:var(--t2);font-weight:500">圖表月份</span><select id="chm" onchange="rCharts()" class="sel"></select><span style="font-size:11px;color:var(--t3)">影響支出/收入分類</span></div>
   <div class="g2">
-    <div class="card"><div class="ch"><span class="ct">支出分類</span></div><div class="cb" id="chExpB" style="overflow:visible"></div></div>
-    <div class="card"><div class="ch"><span class="ct">收入分類</span></div><div class="cb" id="chIncB" style="overflow:visible"></div></div>
+    <div class="card" style="overflow:visible"><div class="ch"><span class="ct">支出分類</span></div><div class="cb" id="chExpB" style="overflow:visible"></div></div>
+    <div class="card" style="overflow:visible"><div class="ch"><span class="ct">收入分類</span></div><div class="cb" id="chIncB" style="overflow:visible"></div></div>
   </div>
-  <div class="card"><div class="ch"><span class="ct">資產配置</span><span style="font-size:11px;color:var(--t3)">不受月份影響</span></div><div class="cb" id="chAlcB" style="overflow:visible"></div></div>
+  <div class="card" style="overflow:visible"><div class="ch"><span class="ct">資產配置</span><span style="font-size:11px;color:var(--t3)">不受月份影響</span></div><div class="cb" id="chAlcB" style="overflow:visible"></div></div>
   <div class="card"><div class="ch"><span class="ct">6個月收支趨勢</span></div><div class="cb"><div class="cw" style="height:170px"><canvas id="cTrend"></canvas></div></div></div>
   <div class="card"><div class="ch"><span class="ct">股票未實現損益</span></div><div class="cb"><div class="cw" style="height:150px"><canvas id="cPnl"></canvas></div></div></div>
 </div>
@@ -353,16 +353,17 @@ function sbInc(){
     if(old.dep>0&&old.depBk!==''){var obi=parseInt(old.depBk);if(!isNaN(obi)&&D.banks[obi])D.banks[obi].amt=Math.max(0,D.banks[obi].amt-old.dep);}
     D.incomes[eIncI]=Object.assign({},D.incomes[eIncI],{cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,depBk:bi>=0?String(bi):''});
   }else{
-    D.incomes.push({id:D.nInc++,cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,depBk:bi>=0?String(bi):''});
+    D.incomes.push({id:Date.now(),cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,depBk:bi>=0?String(bi):''});
   }
   if(dep>0&&bi>=0&&D.banks[bi]){D.banks[bi].amt+=dep;toast('NT$'+dep.toLocaleString()+' 已存入「'+D.banks[bi].name+'」','t');}
   sv();cMo('mInc');bIncF();rInc();rAll();syncQ();
 }
 
 function dInc(id){
-  var inc=D.incomes.find(function(i){return i.id===id;});
+  var sid=String(id);
+  var inc=D.incomes.find(function(i){return String(i.id)===sid;});
   if(inc&&inc.dep>0&&inc.depBk!==''){var bi=parseInt(inc.depBk);if(!isNaN(bi)&&D.banks[bi])D.banks[bi].amt=Math.max(0,D.banks[bi].amt-inc.dep);}
-  D.incomes=D.incomes.filter(function(i){return i.id!==id;});
+  D.incomes=D.incomes.filter(function(i){return String(i.id)!==sid;});
   sv();bIncF();rInc();rAll();syncQ();
 }
 
@@ -376,8 +377,8 @@ function oExpMo(idx){
   oMo('mExp');
 }
 
-function sbExp(){var cat=document.getElementById('ec0').value,amt=parseFloat(document.getElementById('ec1').value),date=document.getElementById('ec2').value,desc=document.getElementById('ec3').value.trim()||(EC[cat]?EC[cat].l:'');if(isNaN(amt)||!date){toast('請填寫金額與日期','r');return;}if(eExpI!==null){var e=D.expenses[eExpI];e.cat=cat;e.amt=amt;e.date=date;e.desc=desc;}else{D.expenses.push({id:D.nExp++,cat:cat,amt:amt,desc:desc,date:date});}sv();cMo('mExp');bExpF();rLiab();rAll();syncQ();}
-function dExp(id){D.expenses=D.expenses.filter(function(e){return e.id!==id;});sv();bExpF();rLiab();rAll();syncQ();}
+function sbExp(){var cat=document.getElementById('ec0').value,amt=parseFloat(document.getElementById('ec1').value),date=document.getElementById('ec2').value,desc=document.getElementById('ec3').value.trim()||(EC[cat]?EC[cat].l:'');if(isNaN(amt)||!date){toast('請填寫金額與日期','r');return;}if(eExpI!==null){var e=D.expenses[eExpI];e.cat=cat;e.amt=amt;e.date=date;e.desc=desc;}else{D.expenses.push({id:Date.now(),cat:cat,amt:amt,desc:desc,date:date});}sv();cMo('mExp');bExpF();rLiab();rAll();syncQ();}
+function dExp(id){var sid=String(id);D.expenses=D.expenses.filter(function(e){return String(e.id)!==sid;});sv();bExpF();rLiab();rAll();syncQ();}
 
 function rKpis(){
   var ym=ymN(),sv2=sMV(),bv=bTWD(),me=sAmt(gExp(ym)),mi=sAmt(gInc(ym));
@@ -519,12 +520,12 @@ function rWeekBar(){
   wkCh=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:labs,datasets:[{data:tots,backgroundColor:bgc,borderColor:'#FBBF24',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return'NT$'+ctx.raw.toLocaleString();}}}},scales:{y:{ticks:{color:tc,callback:function(v){return'NT$'+(v/1000).toFixed(1)+'k';}},grid:{color:gc},beginAtZero:true},x:{ticks:{color:tc,font:{size:10}},grid:{display:false}}}}});
 }
 
-var assetCh=null;
 function rSnap(){
   if(!D.snap)D.snap={};
   var n=new Date(),today=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
   var tot=sMV()+bTWD();if(tot>0)D.snap[today]=Math.round(tot);sv();
 }
+var assetCh=null;
 function rAssetLine(){
   var canvas=document.getElementById('cAsset');if(!canvas)return;
   if(!D.snap)D.snap={};
@@ -532,16 +533,41 @@ function rAssetLine(){
   function localDs(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   var days=[],vals=[],now=new Date();
   for(var i=29;i>=0;i--){var d=new Date(now);d.setDate(now.getDate()-i);var ds=localDs(d);days.push(ds);vals.push(D.snap[ds]||null);}
-  var last=null,filled=vals.map(function(v){if(v!==null)last=v;return last;});
-  var labels=days.map(function(ds,idx){var d=new Date(ds+'T00:00:00');var l=String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');return idx%5===0||idx===days.length-1?l:'';});
+  // Forward-fill so line doesn't break; keep null before first known value
+  var last=null;
+  var filled=vals.map(function(v){if(v!==null)last=v;return last;});
+  var labels=days.map(function(ds,i){
+    var d=new Date(ds+'T00:00:00');
+    var l=String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+    return(i%5===0||i===days.length-1)?l:'';
+  });
   if(assetCh){try{assetCh.destroy();}catch(e){}}
-  assetCh=new Chart(canvas.getContext('2d'),{type:'line',data:{labels:labels,datasets:[{label:'總資產',data:filled,borderColor:'#34D399',borderWidth:2,backgroundColor:'rgba(52,211,153,.08)',fill:true,tension:0.35,pointRadius:0,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.raw?'NT$'+ctx.raw.toLocaleString():'—';}}}},scales:{y:{ticks:{color:tc,callback:function(v){return'NT$'+(v/1000000).toFixed(2)+'M';}},grid:{color:gc}},x:{ticks:{color:tc,font:{size:10},maxRotation:0},grid:{display:false}}}}});
+  assetCh=new Chart(canvas.getContext('2d'),{
+    type:'line',
+    data:{labels:labels,datasets:[{
+      label:'總資產(NT$)',data:filled,
+      borderColor:'#34D399',borderWidth:2.5,
+      backgroundColor:'rgba(52,211,153,.1)',
+      fill:true,tension:0.3,
+      pointRadius:filled.map(function(v,i){return i===filled.length-1?5:0;}),
+      pointBackgroundColor:'#34D399',
+      spanGaps:false
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.raw?'NT$'+ctx.raw.toLocaleString():'—';}}}},
+      scales:{
+        y:{ticks:{color:'rgba(200,220,240,.8)',callback:function(v){return v>=1000000?'NT$'+(v/1000000).toFixed(1)+'M':'NT$'+(v/1000).toFixed(0)+'k';}},grid:{color:'rgba(255,255,255,.04)'}},
+        x:{ticks:{color:'rgba(200,220,240,.8)',font:{size:10},maxRotation:0},grid:{display:false}}
+      }
+    }
+  });
 }
 
 function rAll(){
   rKpis();rDashStk();
   bDmF();rDash();
-  rAssetLine();
+  if(curP===0)rAssetLine();
   if(curP===1){rStkTbl();rBkList();}
   if(curP===2){bExpF();rLiab();rWeekBar();}
   uGsUi();
