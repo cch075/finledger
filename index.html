@@ -303,7 +303,17 @@ const ECATS={food:{l:'飲食',i:'🍜',c:'#F05252'},groceries:{l:'買菜',i:'�
 const ICATS={salary:{l:'薪資',i:'💼',c:'#10B981'},bonus:{l:'獎金/Bonus',i:'🎁',c:'#00C9A7'},stock_profit:{l:'股票獲利',i:'📈',c:'#4DA6FF'},dividend:{l:'股息',i:'💰',c:'#C9A84C'},interest:{l:'利息',i:'🏦',c:'#A78BFA'},rental:{l:'租金收入',i:'🏠',c:'#5DCAA5'},freelance:{l:'接案/副業',i:'💻',c:'#F05252'},other_income:{l:'其他',i:'📌',c:'#4A6A85'}};
 const BCOLORS=['#00C9A7','#4DA6FF','#C9A84C','#D4537E','#7F77DD','#10B981','#F05252','#A78BFA'];
 const APPS_SCRIPT=`// FinLedger Apps Script
-function doGet(e){try{const ss=SpreadsheetApp.getActiveSpreadsheet();const result={};['stocks','banks','expenses','incomes'].forEach(name=>{const sh=ss.getSheetByName(name);if(!sh)return;const vals=sh.getDataRange().getValues();if(vals.length<2){result[name]=[];return;}const headers=vals[0];result[name]=vals.slice(1).map(row=>{const obj={};headers.forEach((h,i)=>obj[h]=row[i]);return obj;});});return ContentService.createTextOutput(JSON.stringify({ok:true,data:result})).setMimeType(ContentService.MimeType.JSON);}catch(err){return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.toString()})).setMimeType(ContentService.MimeType.JSON);}}
+function formatVal(v){
+  if(v instanceof Date){
+    // Force YYYY-MM-DD string so JS never misparses it
+    var y=v.getFullYear();
+    var m=String(v.getMonth()+1).padStart(2,'0');
+    var d=String(v.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+d;
+  }
+  return v;
+}
+function doGet(e){try{const ss=SpreadsheetApp.getActiveSpreadsheet();const result={};['stocks','banks','expenses','incomes'].forEach(name=>{const sh=ss.getSheetByName(name);if(!sh)return;const vals=sh.getDataRange().getValues();if(vals.length<2){result[name]=[];return;}const headers=vals[0];result[name]=vals.slice(1).map(row=>{const obj={};headers.forEach((h,i)=>obj[h]=formatVal(row[i]));return obj;});});return ContentService.createTextOutput(JSON.stringify({ok:true,data:result})).setMimeType(ContentService.MimeType.JSON);}catch(err){return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.toString()})).setMimeType(ContentService.MimeType.JSON);}}
 function doPost(e){try{const p=JSON.parse(e.postData.contents);const ss=SpreadsheetApp.getActiveSpreadsheet();let sh=ss.getSheetByName(p.sheet)||ss.insertSheet(p.sheet);sh.clearContents();const all=[p.headers,...p.rows];sh.getRange(1,1,all.length,p.headers.length).setValues(all);sh.getRange(1,1,1,p.headers.length).setBackground('#0F2238').setFontColor('#00C9A7').setFontWeight('bold');return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);}catch(err){return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.toString()})).setMimeType(ContentService.MimeType.JSON);}}`;
 
 const SK='fl8';
@@ -348,7 +358,30 @@ function assetTab(t){
 function updateCurrencyHint(){const cur=document.getElementById('b-currency').value;const amt=parseFloat(document.getElementById('b-amt').value)||0;document.getElementById('b-amt-label').textContent=`餘額（${cur}）`;const hint=document.getElementById('b-fx-hint');if(cur!=='TWD'&&amt>0){const twd=toTWD(amt,cur);hint.textContent=`≈ NT$${Math.round(twd).toLocaleString()} 台幣`;hint.style.display='block';}else hint.style.display='none';}
 
 // Bank selector in income modal
-function validateDepositInput(){
+function normalizeDate(val){
+  if(!val)return '';
+  if(typeof val==='string'){
+    // Already YYYY-MM-DD or similar string
+    // Handle Google Sheets date format: "Date(2026,2,15)" or JS Date toString
+    if(val.startsWith('Date(')){
+      const m=val.match(/Date\((\d+),(\d+),(\d+)\)/);
+      if(m)return`${m[1]}-${String(+m[2]+1).padStart(2,'0')}-${String(+m[3]).padStart(2,'0')}`;
+    }
+    // Try to parse any date string and reformat
+    const d=new Date(val);
+    if(!isNaN(d.getTime()))return d.toISOString().split('T')[0];
+    return val;
+  }
+  if(val instanceof Date){
+    return val.toISOString().split('T')[0];
+  }
+  // Number: Google Sheets serial date (days since Dec 30 1899)
+  if(typeof val==='number'){
+    const d=new Date(Math.round((val-25569)*86400000));
+    return d.toISOString().split('T')[0];
+  }
+  return String(val);
+}
   const currency=document.getElementById('i-currency').value;
   const rawAmt=parseFloat(document.getElementById('i-amt').value)||0;
   const amt=currency==='USD'?Math.round(rawAmt*(D.fxRates.USD||32.5)):rawAmt;
@@ -792,7 +825,7 @@ async function connectGs(){const url=document.getElementById('gs-url-input').val
 async function testGs(){if(!D.gsUrl){toast('請先輸入 URL','red');return;}toast('測試中…','gold');try{await fetch(D.gsUrl+'?action=ping');toast('連線成功','teal');}catch(e){toast('連線成功（CORS 為預期行為）','teal');}}
 function buildPayload(sheet,arr,fields){return{sheet,headers:fields,rows:arr.map(o=>fields.map(f=>o[f]??''))};}
 async function pushToGs(){if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}document.getElementById('gs-dot').className='gs-dot syncing';try{const post=body=>fetch(D.gsUrl,{method:'POST',body:JSON.stringify(body)});await post(buildPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','priceDate']));await post(buildPayload('banks',D.banks,['name','type','amt','currency','color','note']));await post(buildPayload('expenses',D.expenses,['id','cat','amt','desc','date']));await post(buildPayload('incomes',D.incomes,['id','cat','amt','desc','date','deposit','depositBank']));document.getElementById('gs-dot').className='gs-dot on';toast('已同步至 Google Sheet','teal');}catch(e){document.getElementById('gs-dot').className='gs-dot';toast('同步失敗','red');}}
-async function pullFromGs(){if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}document.getElementById('gs-dot').className='gs-dot syncing';try{const r=await fetch(D.gsUrl+'?action=getAll');const d=await r.json();if(d.ok&&d.data){if(d.data.stocks?.length)D.stocks=d.data.stocks.map(s=>({...s,shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null}));if(d.data.banks?.length)D.banks=d.data.banks.map(b=>({currency:'TWD',...b,amt:+b.amt}));if(d.data.expenses?.length)D.expenses=d.data.expenses.map(e=>({...e,id:+e.id,amt:+e.amt}));if(d.data.incomes?.length)D.incomes=d.data.incomes.map(i=>({deposit:0,depositBank:'',...i,id:+i.id,amt:+i.amt,deposit:+(i.deposit||0)}));save();renderAll();document.getElementById('gs-dot').className='gs-dot on';toast('已從 Sheet 匯入資料','teal');}else toast('Sheet 尚無資料','gold');}catch(e){document.getElementById('gs-dot').className='gs-dot on';toast('嘗試匯入完成','gold');}}
+async function pullFromGs(){if(!D.gsUrl){toast('請先連結 Google Sheet','red');return;}document.getElementById('gs-dot').className='gs-dot syncing';try{const r=await fetch(D.gsUrl+'?action=getAll');const d=await r.json();if(d.ok&&d.data){if(d.data.stocks?.length)D.stocks=d.data.stocks.map(s=>({...s,shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null}));if(d.data.banks?.length)D.banks=d.data.banks.map(b=>({currency:'TWD',...b,amt:+b.amt}));if(d.data.expenses?.length)D.expenses=d.data.expenses.map(e=>({...e,id:+e.id,amt:+e.amt,date:normalizeDate(e.date)}));if(d.data.incomes?.length)D.incomes=d.data.incomes.map(i=>({deposit:0,depositBank:'',...i,id:+i.id,amt:+i.amt,deposit:+(i.deposit||0),date:normalizeDate(i.date)}));save();renderAll();document.getElementById('gs-dot').className='gs-dot on';toast('已從 Sheet 匯入資料','teal');}else toast('Sheet 尚無資料','gold');}catch(e){document.getElementById('gs-dot').className='gs-dot on';toast('嘗試匯入完成','gold');}}
 let syncTimer=null;
 function syncQ(){if(!D.gsUrl)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushToGs,3000);}
 
