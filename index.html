@@ -240,15 +240,14 @@ html,body{height:100%;background:var(--n0);color:var(--t1);font-family:var(--fb)
 <div class="tst" id="tst"><div class="tsd" id="tsd"></div><span id="tsm"></span></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-(function(){
 var EC={food:{l:'飲食',i:'🍜',c:'#F05252'},groceries:{l:'買菜',i:'🛒',c:'#FF8C42'},rent:{l:'房租',i:'🏠',c:'#4DA6FF'},transport:{l:'交通',i:'🚇',c:'#10B981'},entertainment:{l:'娛樂',i:'🎬',c:'#C9A84C'},health:{l:'醫療健康',i:'💊',c:'#D4537E'},shopping:{l:'購物',i:'🛍',c:'#7F77DD'},utilities:{l:'水電瓦斯',i:'💡',c:'#EF9F27'},education:{l:'教育進修',i:'📚',c:'#5DCAA5'},insurance:{l:'保險',i:'🛡',c:'#8FA8C0'},other:{l:'其他',i:'📌',c:'#4A6A85'}};
 var IC={salary:{l:'薪資',i:'💼',c:'#10B981'},bonus:{l:'獎金/Bonus',i:'🎁',c:'#00C9A7'},stock_profit:{l:'股票獲利',i:'📈',c:'#4DA6FF'},dividend:{l:'股息',i:'💰',c:'#C9A84C'},interest:{l:'利息',i:'🏦',c:'#A78BFA'},rental:{l:'租金',i:'🏠',c:'#5DCAA5'},freelance:{l:'接案/副業',i:'💻',c:'#F05252'},other_income:{l:'其他',i:'📌',c:'#4A6A85'}};
 var BC=['#00C9A7','#4DA6FF','#C9A84C','#D4537E','#7F77DD','#10B981','#F05252','#A78BFA'];
 
-var AS='// FinLedger Apps Script
+var AS=`// FinLedger Apps Script
 function fmtVal(v){if(v instanceof Date){var y=v.getFullYear(),m=String(v.getMonth()+1).padStart(2,'0'),d=String(v.getDate()).padStart(2,'0');return y+'-'+m+'-'+d;}return v;}
 function doGet(e){try{var ss=SpreadsheetApp.getActiveSpreadsheet(),res={};['stocks','banks','expenses','incomes'].forEach(function(name){var sh=ss.getSheetByName(name);if(!sh)return;var vals=sh.getDataRange().getValues();if(vals.length<2){res[name]=[];return;}var hdr=vals[0];res[name]=vals.slice(1).map(function(row){var o={};hdr.forEach(function(h,i){o[h]=fmtVal(row[i]);});return o;});});return ContentService.createTextOutput(JSON.stringify({ok:true,data:res})).setMimeType(ContentService.MimeType.JSON);}catch(e){return ContentService.createTextOutput(JSON.stringify({ok:false,error:e.toString()})).setMimeType(ContentService.MimeType.JSON);}}
-function doPost(e){try{var p=JSON.parse(e.postData.contents),ss=SpreadsheetApp.getActiveSpreadsheet(),sh=ss.getSheetByName(p.sheet)||ss.insertSheet(p.sheet);sh.clearContents();var all=[p.headers].concat(p.rows);sh.getRange(1,1,all.length,p.headers.length).setValues(all);sh.getRange(1,1,1,p.headers.length).setBackground('#0F2238').setFontColor('#00C9A7').setFontWeight('bold');return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);}catch(e){return ContentService.createTextOutput(JSON.stringify({ok:false,error:e.toString()})).setMimeType(ContentService.MimeType.JSON);}}';
+function doPost(e){try{var p=JSON.parse(e.postData.contents),ss=SpreadsheetApp.getActiveSpreadsheet(),sh=ss.getSheetByName(p.sheet)||ss.insertSheet(p.sheet);sh.clearContents();var all=[p.headers].concat(p.rows);sh.getRange(1,1,all.length,p.headers.length).setValues(all);sh.getRange(1,1,1,p.headers.length).setBackground('#0F2238').setFontColor('#00C9A7').setFontWeight('bold');return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);}catch(e){return ContentService.createTextOutput(JSON.stringify({ok:false,error:e.toString()})).setMimeType(ContentService.MimeType.JSON);}}`
 
 var SK='fl9';
 function load(){for(var i=0,ks=[SK,'fl8','fl7','fl6','fl5'];i<ks.length;i++){var r=localStorage.getItem(ks[i]);if(r){try{var d=JSON.parse(r);if(ks[i]!==SK)localStorage.setItem(SK,r);return d;}catch(e){}}}return null;}
@@ -270,7 +269,6 @@ var ndDate=function(v){if(!v)return'';if(v instanceof Date)return v.toISOString(
 
 function oMo(id){document.getElementById(id).classList.add('sh');}
 function cMo(id){document.getElementById(id).classList.remove('sh');}
-window.cMo=cMo;
 
 var curP=0;
 function go(p){
@@ -281,32 +279,25 @@ function go(p){
   if(p===2){bExpF();rLiab();}
   if(p===0){bDmF();rDash();}
 }
-window.go=go;
 
 function aTab(t){
   for(var i=0;i<3;i++){document.getElementById('ap'+i).style.display=i===t?'':'none';document.getElementById('at'+i).classList[i===t?'add':'remove']('on');}
   if(t===1){rFxBar();rBkList();}
   if(t===2){bIncF();rInc();}
 }
-window.aTab=aTab;
 
 async function fetchFx(){try{var r=await fetch('https://api.exchangerate-api.com/v4/latest/TWD');var d=await r.json();if(d.rates){D.fx={USD:1/d.rates.USD,JPY:1/d.rates.JPY,COP:1/d.rates.COP};sv();rFxBar();}}catch(e){}}
 function rFxBar(){var el=document.getElementById('fxbar');if(el)el.textContent='匯率：1 USD=NT$'+(D.fx.USD?D.fx.USD.toFixed(2):'—')+' / 1 JPY=NT$'+(D.fx.JPY?D.fx.JPY.toFixed(4):'—')+' / 1 COP=NT$'+(D.fx.COP?D.fx.COP.toFixed(6):'—');}
-window.rFxBar=rFxBar;
 
 function uCurHint(){var cur=document.getElementById('bc2').value,amt=parseFloat(document.getElementById('bc3').value)||0;document.getElementById('bclb').textContent='餘額('+cur+')';var h=document.getElementById('bchint');if(cur!=='TWD'&&amt>0){h.textContent='≈ NT$'+Math.round(t2w(amt,cur)).toLocaleString()+' 台幣';h.style.display='block';}else h.style.display='none';}
-window.uCurHint=uCurHint;
 
 function uIncHint(){var cur=document.getElementById('ic1').value,raw=parseFloat(document.getElementById('ic2').value)||0;document.getElementById('iclb').textContent='金額('+cur+')';var h=document.getElementById('ichint');if(cur==='USD'&&raw>0){h.textContent='≈ NT$'+Math.round(raw*(D.fx.USD||32.5)).toLocaleString()+' 台幣';h.style.display='block';}else h.style.display='none';}
-window.uIncHint=uIncHint;
 
 function fillBkSel(selId,selectedVal){var sel=document.getElementById(selId);sel.innerHTML='<option value="">— 不存入 —</option>'+D.banks.map(function(b,i){return'<option value="'+i+'"'+(String(i)===String(selectedVal)?' selected':'')+'>'+b.name+'（'+b.cur+'）'+fmt(t2w(b.amt,b.cur))+'</option>';}).join('');}
 
 function uDepHint(){var bv=document.getElementById('ic5').value,f=document.getElementById('idepf'),h=document.getElementById('iphint');if(bv===''){f.style.display='none';return;}f.style.display='';var bi=parseInt(bv);if(!isNaN(bi)&&D.banks[bi])h.textContent='存入後累加至「'+D.banks[bi].name+'」（目前：'+fmt(t2w(D.banks[bi].amt,D.banks[bi].cur))+'）';}
-window.uDepHint=uDepHint;
 
 function uDepWarn(){var cur=document.getElementById('ic1').value,raw=parseFloat(document.getElementById('ic2').value)||0;var amt=cur==='USD'?Math.round(raw*(D.fx.USD||32.5)):raw;var dep=parseFloat(document.getElementById('ic6').value)||0;var w=document.getElementById('ipwarn');if(dep>amt&&amt>0){w.textContent='存入金額不可超過收入NT$'+Math.round(amt).toLocaleString();w.style.display='block';}else w.style.display='none';}
-window.uDepWarn=uDepWarn;
 
 var ltimer=null;
 document.getElementById('sc0').addEventListener('input',function(){
@@ -325,19 +316,14 @@ document.getElementById('sc0').addEventListener('input',function(){
 
 var eStkI=null;
 function oStkMo(idx){eStkI=idx;var isE=idx!==null;document.getElementById('mstt').textContent=isE?'編輯持股':'新增持股';document.getElementById('msts').textContent=isE?'儲存':'新增';document.getElementById('sch').textContent='輸入代碼後自動查詢名稱';document.getElementById('sch').className='ch2';if(isE){var s=D.stocks[idx];document.getElementById('sc0').value=s.code;document.getElementById('sc1').value=s.name;document.getElementById('sc2').value=s.type;document.getElementById('sc3').value=s.shares;document.getElementById('sc4').value=s.cost;document.getElementById('sch').textContent='目前：'+s.name;document.getElementById('sch').className='ch2 ok';}else{['sc0','sc1','sc3','sc4'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('sc2').value='stock';}oMo('mStk');}
-window.oStkMo=oStkMo;
 
 function sbStk(){var code=document.getElementById('sc0').value.trim(),name=document.getElementById('sc1').value.trim(),type=document.getElementById('sc2').value,shares=parseFloat(document.getElementById('sc3').value),cost=parseFloat(document.getElementById('sc4').value);if(!code||!name||isNaN(shares)||isNaN(cost)){toast('請填寫所有欄位','r');return;}if(eStkI!==null){var s=D.stocks[eStkI];s.code=code;s.name=name;s.type=type;s.shares=shares;s.cost=cost;}else{D.stocks.push({code:code,name:name,type:type,shares:shares,cost:cost,price:null,chg:null,pd:null});}sv();cMo('mStk');rAll();doRefresh();syncQ();}
-window.sbStk=sbStk;
 function dStk(i){if(!confirm('確定移除？'))return;D.stocks.splice(i,1);sv();rAll();syncQ();}
-window.dStk=dStk;
 
 var eBkI=null;
 function oBkMo(idx){eBkI=idx;var isE=idx!==null;document.getElementById('mbtt').textContent=isE?'編輯帳戶':'新增銀行帳戶';document.getElementById('mbts').textContent=isE?'儲存':'新增';document.getElementById('bchint').style.display='none';if(isE){var b=D.banks[idx];document.getElementById('bc0').value=b.name;document.getElementById('bc1').value=b.type;document.getElementById('bc2').value=b.cur||'TWD';document.getElementById('bc3').value=b.amt;document.getElementById('bc4').value=b.note||'';document.getElementById('bclb').textContent='餘額('+(b.cur||'TWD')+')';}else{['bc0','bc3','bc4'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('bc2').value='TWD';document.getElementById('bclb').textContent='餘額(TWD)';}oMo('mBk');}
-window.oBkMo=oBkMo;
 
 function sbBk(){var name=document.getElementById('bc0').value.trim(),type=document.getElementById('bc1').value,cur=document.getElementById('bc2').value,amt=parseFloat(document.getElementById('bc3').value),note=document.getElementById('bc4').value.trim();if(!name||isNaN(amt)){toast('請填寫名稱與金額','r');return;}if(eBkI!==null){var b=D.banks[eBkI];b.name=name;b.type=type;b.cur=cur;b.amt=amt;b.note=note;}else{D.banks.push({name:name,type:type,amt:amt,cur:cur,note:note,color:BC[D.banks.length%BC.length]});}sv();cMo('mBk');rAll();syncQ();}
-window.sbBk=sbBk;
 
 var eIncI=null;
 function oIncMo(idx){
@@ -352,7 +338,6 @@ function oIncMo(idx){
   else{document.getElementById('ic1').value='TWD';document.getElementById('ic2').value='';document.getElementById('ic3').value=new Date().toISOString().split('T')[0];document.getElementById('ic4').value='';document.getElementById('ic5').value='';document.getElementById('ic6').value='';document.getElementById('iclb').textContent='金額(TWD)';}
   uDepHint();oMo('mInc');
 }
-window.oIncMo=oIncMo;
 
 function sbInc(){
   var cat=document.getElementById('ic0').value,cur=document.getElementById('ic1').value,raw=parseFloat(document.getElementById('ic2').value);
@@ -372,7 +357,6 @@ function sbInc(){
   if(dep>0&&bi>=0&&D.banks[bi]){D.banks[bi].amt+=dep;toast('NT$'+dep.toLocaleString()+' 已存入「'+D.banks[bi].name+'」','t');}
   sv();cMo('mInc');bIncF();rInc();rAll();syncQ();
 }
-window.sbInc=sbInc;
 
 function dInc(id){
   var inc=D.incomes.find(function(i){return i.id===id;});
@@ -380,7 +364,6 @@ function dInc(id){
   D.incomes=D.incomes.filter(function(i){return i.id!==id;});
   sv();bIncF();rInc();rAll();syncQ();
 }
-window.dInc=dInc;
 
 var eExpI=null;
 function oExpMo(idx){
@@ -391,12 +374,9 @@ function oExpMo(idx){
   else{document.getElementById('ec1').value='';document.getElementById('ec2').value=new Date().toISOString().split('T')[0];document.getElementById('ec3').value='';}
   oMo('mExp');
 }
-window.oExpMo=oExpMo;
 
 function sbExp(){var cat=document.getElementById('ec0').value,amt=parseFloat(document.getElementById('ec1').value),date=document.getElementById('ec2').value,desc=document.getElementById('ec3').value.trim()||(EC[cat]?EC[cat].l:'');if(isNaN(amt)||!date){toast('請填寫金額與日期','r');return;}if(eExpI!==null){var e=D.expenses[eExpI];e.cat=cat;e.amt=amt;e.date=date;e.desc=desc;}else{D.expenses.push({id:D.nExp++,cat:cat,amt:amt,desc:desc,date:date});}sv();cMo('mExp');bExpF();rLiab();rAll();syncQ();}
-window.sbExp=sbExp;
 function dExp(id){D.expenses=D.expenses.filter(function(e){return e.id!==id;});sv();bExpF();rLiab();rAll();syncQ();}
-window.dExp=dExp;
 
 function rKpis(){
   var ym=ymN(),sv2=sMV(),bv=bTWD(),me=sAmt(gExp(ym)),mi=sAmt(gInc(ym));
@@ -434,7 +414,6 @@ function rDash(){
   h+=re.map(function(e){return'<div class="item"><div class="ii" style="background:'+EC[e.cat].c+'20">'+EC[e.cat].i+'</div><div class="im"><div class="in">'+e.desc+'</div><div class="is">'+EC[e.cat].l+'</div></div><div class="ar">'+fmt(e.amt)+'</div></div>';}).join('')||'<div style="font-size:12px;color:var(--t3);padding:3px 0">—</div>';
   document.getElementById('ds1').innerHTML=h;
 }
-window.rDash=rDash;
 
 function rStkTbl(){
   document.getElementById('stv').textContent=fmt(sMV());
@@ -466,7 +445,6 @@ function rInc(){
     return'<div class="item"><div class="ii" style="background:'+IC[inc.cat].c+'20">'+IC[inc.cat].i+'</div><div class="im"><div class="in">'+inc.desc+'</div><div class="is">'+IC[inc.cat].l+'·'+inc.date+ol+(inc.dep>0?' · 存入NT$'+inc.dep.toLocaleString()+(bn?'→'+bn:''):'')+'</div></div><div class="ag">'+fmt(inc.amt)+'</div><div class="ia"><button class="ebt" onclick="oIncMo('+ri+')">✏</button><button class="dbt" onclick="dInc('+inc.id+')">✕</button></div></div>';
   }).join('')||'<div style="text-align:center;padding:18px 0;color:var(--t3)">無收入記錄</div>';
 }
-window.rInc=rInc;
 
 function bExpF(){var sel=document.getElementById('expsm');if(!sel)return;var ms=new Set(D.expenses.map(function(e){return e.date.slice(0,7);}));ms.add(ymN());var sorted=Array.from(ms).sort().reverse(),cur=sel.value||ymN();sel.innerHTML=sorted.map(function(m){return'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m.replace('-','年')+'月</option>';}).join('');}
 function rLiab(){
@@ -489,7 +467,6 @@ function rLiab(){
   });
   document.getElementById('expl').innerHTML=html||'<div style="text-align:center;padding:18px 0;color:var(--t3)">無支出記錄</div>';
 }
-window.rLiab=rLiab;
 
 var tc='rgba(200,220,240,.8)',gc='rgba(255,255,255,.04)';
 function bLeg(labels,data,colors,total){return'<table class="ltbl"><tbody>'+labels.map(function(l,i){var pct=total>0?((data[i]/total)*100).toFixed(1):0;return'<tr><td style="width:14px"><span class="ls" style="background:'+colors[i]+'"></span></td><td style="color:var(--t2)">'+l+'</td><td style="font-family:var(--fm);font-size:12px;text-align:right;color:var(--t1)">'+fmt(data[i])+'</td><td style="font-family:var(--fm);font-size:12px;text-align:right;color:var(--tl);padding-left:5px">'+pct+'%</td></tr>';}).join('')+'</tbody></table>';}
@@ -525,7 +502,6 @@ function rCharts(){
   var pd=D.stocks.map(function(s){var mv=(s.price||s.cost)*s.shares*1000,cost=s.cost*s.shares*1000;return{name:s.name,pnl:mv-cost,cost:cost};});
   chs.pnl=new Chart(document.getElementById('cPnl').getContext('2d'),{type:'bar',data:{labels:pd.map(function(d){return d.name;}),datasets:[{data:pd.map(function(d){return d.pnl;}),backgroundColor:pd.map(function(d){return d.pnl>=0?'rgba(52,211,153,.3)':'rgba(248,113,113,.3)';}),borderColor:pd.map(function(d){return d.pnl>=0?'#34D399':'#F87171';}),borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var d=pd[ctx.dataIndex],pct=d.cost>0?((d.pnl/d.cost)*100).toFixed(1):0;return' '+fmt(d.pnl)+' ('+pct+'%)';}}}},scales:{y:{ticks:{color:tc,callback:function(v){return'NT$'+(Math.abs(v)/1000).toFixed(0)+'k';}},grid:{color:gc}},x:{ticks:{color:tc},grid:{display:false}}}}});
 }
-window.rCharts=rCharts;
 
 var wkCh=null;
 function rWeekBar(){
@@ -577,7 +553,6 @@ async function doRefresh(){
   toast(ok>0?'已更新'+ok+'支股票報價及匯率':'目前無法取得報價',ok>0?'t':'g');
   rAll();rFxBar();
 }
-window.doRefresh=doRefresh;
 
 function uGsUi(){
   var on=!!D.gsUrl;
@@ -588,9 +563,7 @@ function uGsUi(){
   bar.innerHTML=on?'<div class="sb sbok">已連結 · 自動同步</div>':'<div class="sb sbwn">尚未連結，資料僅存於本機</div>';
 }
 async function cGs(){var url=document.getElementById('gsurl').value.trim();if(!url){toast('請貼上URL','r');return;}D.gsUrl=url;sv();uGsUi();await tGs();}
-window.cGs=cGs;
 async function tGs(){if(!D.gsUrl){toast('請先輸入URL','r');return;}toast('測試中…','g');try{await fetch(D.gsUrl+'?action=ping');toast('連線成功','t');}catch(e){toast('連線成功（CORS正常）','t');}}
-window.tGs=tGs;
 function bldPayload(sheet,arr,fields){return{sheet:sheet,headers:fields,rows:arr.map(function(o){return fields.map(function(f){return o[f]!==undefined?o[f]:'';});})};}
 async function pushGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','r');return;}
@@ -605,7 +578,6 @@ async function pushGs(){
     document.getElementById('gsd').className='gsd on';toast('已同步至 Google Sheet','t');
   }catch(e){document.getElementById('gsd').className='gsd';toast('同步失敗','r');}
 }
-window.pushGs=pushGs;
 async function pullGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','r');return;}
   document.getElementById('gsd').className='gsd sy';
@@ -620,7 +592,6 @@ async function pullGs(){
     }else toast('Sheet尚無資料','g');
   }catch(e){document.getElementById('gsd').className='gsd on';toast('匯入完成','g');}
 }
-window.pullGs=pullGs;
 var syncTmr=null;
 function syncQ(){if(!D.gsUrl)return;clearTimeout(syncTmr);syncTmr=setTimeout(pushGs,3000);}
 
@@ -628,16 +599,11 @@ var tstTmr=null;
 function toast(msg,type){var t=document.getElementById('tst');document.getElementById('tsm').textContent=msg;document.getElementById('tsd').style.background=type==='r'?'var(--rd)':type==='g'?'var(--gd)':'var(--tl)';t.classList.add('sh');clearTimeout(tstTmr);tstTmr=setTimeout(function(){t.classList.remove('sh');},3200);}
 
 function cpScript(){navigator.clipboard.writeText(AS).then(function(){var ok=document.getElementById('cpok');ok.textContent='已複製！';ok.style.opacity='1';setTimeout(function(){ok.style.opacity='0';},2000);});}
-window.cpScript=cpScript;
 function expJson(){D.lastJsonExport=new Date().toISOString();sv();var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));a.download='finledger_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
-window.expJson=expJson;
 function impJson(){var inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=function(ev){var r=new FileReader();r.onload=function(e){try{D=JSON.parse(e.target.result);D.banks=D.banks.map(function(b){return Object.assign({cur:'TWD'},b);});D.incomes=(D.incomes||[]).map(function(i){return Object.assign({dep:0,depBk:'',cur:'TWD',rawAmt:i.amt},i);});if(!D.snap)D.snap={};sv();rAll();toast('匯入成功','t');}catch(err){toast('格式錯誤','r');}};r.readAsText(ev.target.files[0]);};inp.click();}
-window.impJson=impJson;
 function clrAll(){localStorage.removeItem(SK);location.reload();}
-window.clrAll=clrAll;
 
 function hideBnr(){var b=document.getElementById('bnr');if(b)b.style.display='none';D.lastBnrDismiss=new Date().toISOString();sv();}
-window.hideBnr=hideBnr;
 function chkBnr(){
   var bnr=document.getElementById('bnr');if(!bnr)return;
   var now=Date.now();
@@ -657,7 +623,7 @@ go(0);
 setTimeout(doRefresh,1000);
 setTimeout(chkBnr,4000);
 
-})();
+
 </script>
 </body>
 </html>
