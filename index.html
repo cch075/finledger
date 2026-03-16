@@ -247,8 +247,20 @@ var BC=['#00C9A7','#4DA6FF','#C9A84C','#D4537E','#7F77DD','#10B981','#F05252','#
 
 var AS=`// FinLedger Apps Script
 function fmtVal(v){if(v instanceof Date){var y=v.getFullYear(),m=String(v.getMonth()+1).padStart(2,'0'),d=String(v.getDate()).padStart(2,'0');return y+'-'+m+'-'+d;}return v;}
-function doGet(e){try{var ss=SpreadsheetApp.getActiveSpreadsheet(),res={};['stocks','banks','expenses','incomes'].forEach(function(name){var sh=ss.getSheetByName(name);if(!sh)return;var vals=sh.getDataRange().getValues();if(vals.length<2){res[name]=[];return;}var hdr=vals[0];res[name]=vals.slice(1).map(function(row){var o={};hdr.forEach(function(h,i){o[h]=fmtVal(row[i]);});return o;});});return ContentService.createTextOutput(JSON.stringify({ok:true,data:res})).setMimeType(ContentService.MimeType.JSON);}catch(e){return ContentService.createTextOutput(JSON.stringify({ok:false,error:e.toString()})).setMimeType(ContentService.MimeType.JSON);}}
-function doPost(e){try{var p=JSON.parse(e.postData.contents),ss=SpreadsheetApp.getActiveSpreadsheet(),sh=ss.getSheetByName(p.sheet)||ss.insertSheet(p.sheet);sh.clearContents();var all=[p.headers].concat(p.rows);sh.getRange(1,1,all.length,p.headers.length).setValues(all);sh.getRange(1,1,1,p.headers.length).setBackground('#0F2238').setFontColor('#00C9A7').setFontWeight('bold');return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);}catch(e){return ContentService.createTextOutput(JSON.stringify({ok:false,error:e.toString()})).setMimeType(ContentService.MimeType.JSON);}}`
+function writeSheet(ss,payload){var p=JSON.parse(payload),sh=ss.getSheetByName(p.sheet)||ss.insertSheet(p.sheet);sh.clearContents();var all=[p.headers].concat(p.rows);sh.getRange(1,1,all.length,p.headers.length).setValues(all);sh.getRange(1,1,1,p.headers.length).setBackground('#0F2238').setFontColor('#00C9A7').setFontWeight('bold');}
+function doGet(e){
+  try{
+    var ss=SpreadsheetApp.getActiveSpreadsheet(),p=e.parameter||{};
+    // Write operation via GET (no CORS preflight)
+    if(p.action==='write'&&p.payload){writeSheet(ss,decodeURIComponent(p.payload));return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);}
+    // Status check
+    if(p.action==='status'){var cnt={};['stocks','banks','expenses','incomes'].forEach(function(n){var sh=ss.getSheetByName(n);cnt[n]=sh?Math.max(0,sh.getLastRow()-1):0;});return ContentService.createTextOutput(JSON.stringify({ok:true,counts:cnt})).setMimeType(ContentService.MimeType.JSON);}
+    // Read all data
+    var res={};['stocks','banks','expenses','incomes'].forEach(function(name){var sh=ss.getSheetByName(name);if(!sh)return;var vals=sh.getDataRange().getValues();if(vals.length<2){res[name]=[];return;}var hdr=vals[0];res[name]=vals.slice(1).map(function(row){var o={};hdr.forEach(function(h,i){o[h]=fmtVal(row[i]);});return o;});});
+    return ContentService.createTextOutput(JSON.stringify({ok:true,data:res})).setMimeType(ContentService.MimeType.JSON);
+  }catch(e){return ContentService.createTextOutput(JSON.stringify({ok:false,error:e.toString()})).setMimeType(ContentService.MimeType.JSON);}
+}
+function doPost(e){try{var p=JSON.parse(e.postData.contents),ss=SpreadsheetApp.getActiveSpreadsheet();writeSheet(ss,e.postData.contents);return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);}catch(e){return ContentService.createTextOutput(JSON.stringify({ok:false,error:e.toString()})).setMimeType(ContentService.MimeType.JSON);}}`
 
 var SK='fl9';
 function load(){for(var i=0,ks=[SK,'fl8','fl7','fl6','fl5'];i<ks.length;i++){var r=localStorage.getItem(ks[i]);if(r){try{var d=JSON.parse(r);if(ks[i]!==SK)localStorage.setItem(SK,r);return d;}catch(e){}}}return null;}
@@ -637,7 +649,7 @@ function twMktOpen(){
 }
 function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
 
-// Fetch price from TWSE MIS API (works during AND after market hours)
+// Fetch realtime price from TWSE MIS API
 async function fetchRealtime(code){
   var prefixes=['tse','otc'];
   for(var pi=0;pi<prefixes.length;pi++){
@@ -647,13 +659,15 @@ async function fetchRealtime(code){
       var d=await r.json();
       if(d.msgArray&&d.msgArray[0]){
         var m=d.msgArray[0];
-        if(!m.c||m.c==='')continue;
-        var y=parseFloat(m.y);
-        var z=parseFloat(m.z);
-        var p=(!isNaN(z)&&z>0)?z:y;
+        // z=last trade, b=best bid, a=best ask; use first non-dash value
+        var zv=m.z&&m.z!=='-'?parseFloat(m.z):NaN;
+        var bv=m.b&&m.b!=='-'?parseFloat(m.b):NaN;
+        var av=m.a&&m.a!=='-'?parseFloat(m.a):NaN;
+        var p=!isNaN(zv)?zv:(!isNaN(bv)?bv:av);
+        var y=m.y&&m.y!=='-'?parseFloat(m.y):NaN;
         if(!isNaN(p)&&p>0){
           var chg=(!isNaN(y)&&y>0)?parseFloat(((p-y)/y*100).toFixed(2)):0;
-          return{price:p,chg:chg,pd:null,rt:(!isNaN(z)&&z>0)};
+          return{price:p,chg:chg,pd:null};
         }
       }
     }catch(e){}
@@ -709,8 +723,8 @@ function setupRtInterval(){
   if(!fxInterval){
     fxInterval=setInterval(async function(){
       await fetchFx();
-      if(curP===1)rBkList();
       rKpis();
+      if(curP===1)rBkList();
     },60000);
   }
 }
@@ -747,17 +761,30 @@ async function pushGs(){
   D.lastGsSync=new Date().toISOString();sv();
   document.getElementById('gsd').className='gsd sy';
   try{
-    // mode:'no-cors' bypasses CORS entirely - data arrives at Apps Script,
-    // we just can't read the response (which is fine for write-only sync)
-    var post=function(body){
-      return fetch(D.gsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(body)});
-    };
-    await post(bldPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','pd']));
-    await post(bldPayload('banks',D.banks,['name','type','amt','cur','color','note']));
-    await post(bldPayload('expenses',D.expenses,['id','cat','amt','desc','date']));
-    await post(bldPayload('incomes',D.incomes,['id','cat','amt','desc','date','dep','depBk','cur','rawAmt']));
-    document.getElementById('gsd').className='gsd on';toast('已同步至 Google Sheet','t');
-  }catch(e){document.getElementById('gsd').className='gsd';toast('同步失敗: '+e.message,'r');}
+    // Use GET requests - fully CORS-compatible, no preflight needed
+    var sheets=[
+      bldPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','pd']),
+      bldPayload('banks',D.banks,['name','type','amt','cur','color','note']),
+      bldPayload('expenses',D.expenses,['id','cat','amt','desc','date']),
+      bldPayload('incomes',D.incomes,['id','cat','amt','desc','date','dep','depBk','cur','rawAmt'])
+    ];
+    for(var i=0;i<sheets.length;i++){
+      var encoded=encodeURIComponent(JSON.stringify(sheets[i]));
+      var r=await fetch(D.gsUrl+'?action=write&payload='+encoded);
+      var result=await r.json();
+      if(!result.ok)throw new Error(result.error||'寫入失敗');
+    }
+    // Verify with status check
+    var vr=await fetch(D.gsUrl+'?action=status');
+    var vs=await vr.json();
+    var ok=vs.ok&&vs.counts;
+    document.getElementById('gsd').className='gsd on';
+    if(ok)toast('已同步至 Google Sheet ✓','t');
+    else toast('已送出，請確認 Sheet','g');
+  }catch(e){
+    document.getElementById('gsd').className='gsd';
+    toast('同步失敗: '+e.message,'r');
+  }
 }
 async function pullGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','r');return;}
@@ -765,7 +792,7 @@ async function pullGs(){
   try{
     var r=await fetch(D.gsUrl+'?action=getAll');var d=await r.json();
     if(d.ok&&d.data){
-      if(d.data.stocks&&d.data.stocks.length)D.stocks=d.data.stocks.map(function(s){return Object.assign({},s,{shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null});});
+      if(d.data.stocks&&d.data.stocks.length)D.stocks=d.data.stocks.map(function(s){return Object.assign({},s,{shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null,pd:s.pd?ndDate(s.pd):null});});
       if(d.data.banks&&d.data.banks.length)D.banks=d.data.banks.map(function(b){return Object.assign({cur:'TWD'},b,{amt:+b.amt});});
       if(d.data.expenses&&d.data.expenses.length){D.expenses=d.data.expenses.map(function(e){return Object.assign({},e,{id:+e.id,amt:+e.amt,date:ndDate(e.date)});});D.nExp=Math.max.apply(null,D.expenses.map(function(e){return e.id;}))+1;}
       if(d.data.incomes&&d.data.incomes.length){D.incomes=d.data.incomes.map(function(i){return Object.assign({dep:0,depBk:'',cur:'TWD',rawAmt:+i.amt},i,{id:+i.id,amt:+i.amt,dep:+(i.dep||0),date:ndDate(i.date)});});D.nInc=Math.max.apply(null,D.incomes.map(function(i){return i.id;}))+1;}
