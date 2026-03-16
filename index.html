@@ -331,7 +331,11 @@ async function fetchFx(){
   return false;
 }
 
-function rFxBar(){var el=document.getElementById('fxbar');if(el)el.textContent='匯率：1 USD=NT$'+(D.fx.USD?D.fx.USD.toFixed(2):'—')+' / 1 JPY=NT$'+(D.fx.JPY?D.fx.JPY.toFixed(4):'—')+' / 1 COP=NT$'+(D.fx.COP?D.fx.COP.toFixed(6):'—');}
+function rFxBar(){
+  var el=document.getElementById('fxbar');if(!el)return;
+  var ts=D.lr?(' · 更新：'+D.lr):'';
+  el.textContent='匯率：1 USD=NT$'+(D.fx.USD?D.fx.USD.toFixed(2):'—')+' / 1 JPY=NT$'+(D.fx.JPY?D.fx.JPY.toFixed(4):'—')+' / 1 EUR=NT$'+(D.fx.EUR?D.fx.EUR.toFixed(2):'—')+' / 1 COP=NT$'+(D.fx.COP?D.fx.COP.toFixed(6):'—')+ts;
+}
 
 function uCurHint(){var cur=document.getElementById('bc2').value,amt=parseFloat(document.getElementById('bc3').value)||0;document.getElementById('bclb').textContent='餘額('+cur+')';var h=document.getElementById('bchint');if(cur!=='TWD'&&amt>0){h.textContent='≈ NT$'+Math.round(t2w(amt,cur)).toLocaleString()+' 台幣';h.style.display='block';}else h.style.display='none';}
 
@@ -477,16 +481,16 @@ function rKpis(){
 
 function rDashStk(){
   var totalMV=0,totalCost=0;
-  var rows=D.stocks.slice(0,5).map(function(s){
-    var mv=(s.price||s.cost)*s.shares*1000,cost=s.cost*s.shares*1000,pp=((mv-cost)/cost*100).toFixed(1);
+  var rows=D.stocks.map(function(s){
+    var mv=(s.price||s.cost)*s.shares*1000,cost=s.cost*s.shares*1000,pnl=mv-cost,pp=((pnl/cost)*100).toFixed(1);
     totalMV+=mv;totalCost+=cost;
-    return '<div class="item"><div style="flex:1"><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span style="font-size:13px;font-weight:500">'+s.name+'</span><span class="sc">'+s.code+'</span>'+(s.type==='etf'?'<span class="eb">ETF</span>':'')+'</div><div style="font-size:11px;color:var(--t3);margin-top:1px">'+s.shares+'張·成本'+s.cost.toLocaleString()+'元</div></div><div style="text-align:right"><div style="font-family:var(--fm);font-size:13px">'+(s.price?s.price.toLocaleString()+'元':'待更新')+'</div><div style="font-size:11px" class="'+(parseFloat(pp)>=0?'up':'dn')+'">'+(parseFloat(pp)>=0?'+':'')+pp+'%</div></div></div>';
+    var pnlCls=pnl>=0?'up':'dn';
+    return'<div class="item" style="align-items:center"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span style="font-size:13px;font-weight:500">'+s.name+'</span><span class="sc">'+s.code+'</span>'+(s.type==='etf'?'<span class="eb">ETF</span>':'')+'</div><div style="font-size:11px;color:var(--t3);margin-top:1px">'+s.shares+'張·成本'+s.cost.toLocaleString()+'元</div></div><div style="text-align:right;margin-left:8px"><div style="font-family:var(--fm);font-size:13px">'+(s.price?s.price.toLocaleString()+'元':'待更新')+'</div><div style="font-size:11px;color:var(--t3)">'+(s.chg!=null?(s.chg>=0?'<span class="up">+'+s.chg.toFixed(2)+'%</span>':'<span class="dn">'+s.chg.toFixed(2)+'%</span>'):'')+'</div></div><div style="text-align:right;margin-left:10px;min-width:80px"><div class="'+pnlCls+'" style="font-family:var(--fm);font-size:12px;font-weight:500">'+(pnl>=0?'+':'')+fmt(pnl)+'</div><div class="'+pnlCls+'" style="font-size:11px">'+(parseFloat(pp)>=0?'+':'')+pp+'%</div></div></div>';
   }).join('')||'<div style="text-align:center;padding:20px 0;color:var(--t3)">尚無持股</div>';
-  // Total P&L row
   var totalPnl=totalMV-totalCost,totalPp=totalCost>0?((totalPnl/totalCost)*100).toFixed(2):0;
-  var pnlCls=totalPnl>=0?'up':'dn';
-  var pnlRow=D.stocks.length>0?'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--bd2);margin-top:4px"><span style="font-size:11px;color:var(--t3);font-weight:600">總損益</span><div style="text-align:right"><div style="font-family:var(--fm);font-size:13px;font-weight:500" class="'+pnlCls+'">'+(totalPnl>=0?'+':'')+fmt(totalPnl)+'</div><div style="font-size:11px" class="'+pnlCls+'">'+(parseFloat(totalPp)>=0?'+':'')+totalPp+'%</div></div></div>':'';
-  document.getElementById('ds0').innerHTML=rows+pnlRow;
+  var pnlCls2=totalPnl>=0?'up':'dn';
+  var pnlRow=D.stocks.length>0?'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 2px;border-top:1px solid var(--bd2);margin-top:4px"><span style="font-size:11px;color:var(--t3);font-weight:600">總損益</span><div style="text-align:right"><div class="'+pnlCls2+'" style="font-family:var(--fm);font-size:13px;font-weight:500">'+(totalPnl>=0?'+':'')+fmt(totalPnl)+'</div><div class="'+pnlCls2+'" style="font-size:11px">'+(parseFloat(totalPp)>=0?'+':'')+totalPp+'%</div></div></div>':'';
+  document.getElementById('ds0').innerHTML='<div style="max-height:320px;overflow-y:auto">'+rows+'</div>'+pnlRow;
 }
 
 function bDmF(){
@@ -502,7 +506,8 @@ function rDash(){
   var mi=sAmt(gInc(ym)),me=sAmt(gExp(ym));
   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:11px;color:var(--t3);font-weight:600">本月收入 <span style="font-family:var(--fm);color:var(--gn)">'+fmt(mi)+'</span></span><button class="btn bsm" onclick="go(1);setTimeout(function(){aTab(2);},80)">+ 記錄收入</button></div>';
   h+=ri.map(function(i){return'<div class="item"><div class="ii" style="background:'+IC[i.cat].c+'20">'+IC[i.cat].i+'</div><div class="im"><div class="in">'+i.desc+'</div><div class="is">'+IC[i.cat].l+'</div></div><div class="ag">'+fmt(i.amt)+'</div></div>';}).join('')||'<div style="font-size:12px;color:var(--t3);padding:3px 0 8px">—</div>';
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 7px"><span style="font-size:11px;color:var(--t3);font-weight:600">本月支出 <span style="font-family:var(--fm);color:var(--rd)">'+fmt(me)+'</span></span><button class="btn bsm" onclick="go(2)">+ 記錄支出</button></div>';
+  h+='<div style="border-top:1px solid var(--bd);margin:12px 0 10px"></div>';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:11px;color:var(--t3);font-weight:600">本月支出 <span style="font-family:var(--fm);color:var(--rd)">'+fmt(me)+'</span></span><button class="btn bsm" onclick="go(2)">+ 記錄支出</button></div>';
   h+=re.map(function(e){return'<div class="item"><div class="ii" style="background:'+EC[e.cat].c+'20">'+EC[e.cat].i+'</div><div class="im"><div class="in">'+e.desc+'</div><div class="is">'+EC[e.cat].l+'</div></div><div class="ar">'+fmt(e.amt)+'</div></div>';}).join('')||'<div style="font-size:12px;color:var(--t3);padding:3px 0">—</div>';
   document.getElementById('ds1').innerHTML=h;
 }
