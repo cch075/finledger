@@ -300,7 +300,25 @@ function aTab(t){
   if(t===2){bIncF();rInc();}
 }
 
-async function fetchFx(){try{var r=await fetch('https://api.exchangerate-api.com/v4/latest/TWD');var d=await r.json();if(d.rates){D.fx={USD:1/d.rates.USD,JPY:1/d.rates.JPY,COP:1/d.rates.COP};sv();rFxBar();}}catch(e){}}
+async function fetchFx(){
+  var apis=[
+    'https://open.er-api.com/v6/latest/TWD',
+    'https://api.exchangerate-api.com/v4/latest/TWD'
+  ];
+  for(var i=0;i<apis.length;i++){
+    try{
+      var r=await fetch(apis[i]);
+      var d=await r.json();
+      // open.er-api uses d.rates, exchangerate-api also uses d.rates
+      var rates=d.rates||d.conversion_rates;
+      if(rates&&rates.USD){
+        D.fx={USD:1/rates.USD,JPY:1/rates.JPY,COP:1/rates.COP};
+        sv();rFxBar();
+        return;
+      }
+    }catch(e){}
+  }
+}
 function rFxBar(){var el=document.getElementById('fxbar');if(el)el.textContent='匯率：1 USD=NT$'+(D.fx.USD?D.fx.USD.toFixed(2):'—')+' / 1 JPY=NT$'+(D.fx.JPY?D.fx.JPY.toFixed(4):'—')+' / 1 COP=NT$'+(D.fx.COP?D.fx.COP.toFixed(6):'—');}
 
 function uCurHint(){var cur=document.getElementById('bc2').value,amt=parseFloat(document.getElementById('bc3').value)||0;document.getElementById('bclb').textContent='餘額('+cur+')';var h=document.getElementById('bchint');if(cur!=='TWD'&&amt>0){h.textContent='≈ NT$'+Math.round(t2w(amt,cur)).toLocaleString()+' 台幣';h.style.display='block';}else h.style.display='none';}
@@ -761,26 +779,36 @@ async function pushGs(){
   D.lastGsSync=new Date().toISOString();sv();
   document.getElementById('gsd').className='gsd sy';
   try{
-    // Use GET requests - fully CORS-compatible, no preflight needed
     var sheets=[
       bldPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','pd']),
       bldPayload('banks',D.banks,['name','type','amt','cur','color','note']),
       bldPayload('expenses',D.expenses,['id','cat','amt','desc','date']),
       bldPayload('incomes',D.incomes,['id','cat','amt','desc','date','dep','depBk','cur','rawAmt'])
     ];
-    for(var i=0;i<sheets.length;i++){
-      var encoded=encodeURIComponent(JSON.stringify(sheets[i]));
-      var r=await fetch(D.gsUrl+'?action=write&payload='+encoded);
-      var result=await r.json();
-      if(!result.ok)throw new Error(result.error||'寫入失敗');
+    // Try GET-based write (new AS) first
+    var encoded=encodeURIComponent(JSON.stringify(sheets[0]));
+    var probe=await fetch(D.gsUrl+'?action=write&payload='+encoded);
+    var probeRes=await probe.json();
+    if(probeRes.data!==undefined){
+      // Old AS detected - it returned data instead of {ok:true}
+      // Fall back to POST for each sheet
+      for(var i=0;i<sheets.length;i++){
+        await fetch(D.gsUrl,{method:'POST',body:JSON.stringify(sheets[i])});
+      }
+      document.getElementById('gsd').className='gsd on';
+      toast('已同步 (建議更新Apps Script)','g');
+      return;
     }
-    // Verify with status check
-    var vr=await fetch(D.gsUrl+'?action=status');
-    var vs=await vr.json();
-    var ok=vs.ok&&vs.counts;
+    if(!probeRes.ok)throw new Error(probeRes.error||'write failed');
+    // New AS confirmed - write remaining sheets
+    for(var j=1;j<sheets.length;j++){
+      var enc=encodeURIComponent(JSON.stringify(sheets[j]));
+      var r=await fetch(D.gsUrl+'?action=write&payload='+enc);
+      var res=await r.json();
+      if(!res.ok)throw new Error(res.error||'write failed');
+    }
     document.getElementById('gsd').className='gsd on';
-    if(ok)toast('已同步至 Google Sheet ✓','t');
-    else toast('已送出，請確認 Sheet','g');
+    toast('已同步至 Google Sheet ✓','t');
   }catch(e){
     document.getElementById('gsd').className='gsd';
     toast('同步失敗: '+e.message,'r');
@@ -833,38 +861,38 @@ setTimeout(doRefresh,1000);
 setTimeout(chkBnr,4000);
 setTimeout(setupRtInterval,1500);// Start auto-refresh if market is open
 
-// Auto-sync from Sheet on startup if GS URL is set
-// Runs silently after 2s - won't block initial render
+// Auto-sync from Sheet on startup (runs at 8s, after doRefresh at 1s completes)
 if(D.gsUrl){
   setTimeout(function(){
-    // Pull latest data from Sheet, then re-render
     var dot=document.getElementById('gsd');
     if(dot)dot.className='gsd sy';
-    fetch(D.gsUrl+'?action=getAll')
+    fetch(D.gsUrl)
       .then(function(r){return r.json();})
       .then(function(d){
         if(d.ok&&d.data){
           if(d.data.stocks&&d.data.stocks.length){
-            D.stocks=d.data.stocks.map(function(s){
-              return Object.assign({},s,{shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null});
+            // Keep freshly-fetched price/chg/pd - only sync structural fields from Sheet
+            D.stocks=d.data.stocks.map(function(s,i){
+              var existing=D.stocks[i]||{};
+              return Object.assign({},s,{
+                shares:+s.shares,cost:+s.cost,
+                // Keep live price if already fetched, otherwise use Sheet value
+                price:existing.price||( s.price?+s.price:null),
+                chg:existing.chg!==null&&existing.chg!==undefined?existing.chg:(s.chg?+s.chg:null),
+                pd:existing.price?existing.pd:ndDate(s.pd)
+              });
             });
           }
           if(d.data.banks&&d.data.banks.length){
-            D.banks=d.data.banks.map(function(b){
-              return Object.assign({cur:'TWD'},b,{amt:+b.amt});
-            });
+            D.banks=d.data.banks.map(function(b){return Object.assign({cur:'TWD'},b,{amt:+b.amt});});
           }
           if(d.data.expenses&&d.data.expenses.length){
-            D.expenses=d.data.expenses.map(function(e){
-              return Object.assign({},e,{id:+e.id||e.id,amt:+e.amt,date:ndDate(e.date)});
-            });
+            D.expenses=d.data.expenses.map(function(e){return Object.assign({},e,{id:+e.id||e.id,amt:+e.amt,date:ndDate(e.date)});});
             var maxExp=D.expenses.reduce(function(m,e){return Math.max(m,+e.id||0);},0);
             if(maxExp>0)D.nExp=maxExp+1;
           }
           if(d.data.incomes&&d.data.incomes.length){
-            D.incomes=d.data.incomes.map(function(i){
-              return Object.assign({dep:0,depBk:'',cur:'TWD',rawAmt:+i.amt},i,{id:+i.id||i.id,amt:+i.amt,dep:+(i.dep||0),date:ndDate(i.date)});
-            });
+            D.incomes=d.data.incomes.map(function(i){return Object.assign({dep:0,depBk:'',cur:'TWD',rawAmt:+i.amt},i,{id:+i.id||i.id,amt:+i.amt,dep:+(i.dep||0),date:ndDate(i.date)});});
             var maxInc=D.incomes.reduce(function(m,i){return Math.max(m,+i.id||0);},0);
             if(maxInc>0)D.nInc=maxInc+1;
           }
@@ -872,10 +900,8 @@ if(D.gsUrl){
           if(dot)dot.className='gsd on';
         }
       })
-      .catch(function(){
-        if(dot)dot.className=D.gsUrl?'gsd on':'gsd';
-      });
-  },2000);
+      .catch(function(){if(dot)dot.className=D.gsUrl?'gsd on':'gsd';});
+  },8000);
 }
 
 
