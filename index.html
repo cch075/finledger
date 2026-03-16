@@ -301,24 +301,35 @@ function aTab(t){
 }
 
 async function fetchFx(){
+  // Try multiple CORS-friendly free currency APIs
   var apis=[
-    'https://open.er-api.com/v6/latest/TWD',
-    'https://api.exchangerate-api.com/v4/latest/TWD'
+    {url:'https://open.er-api.com/v6/latest/TWD', parse:function(d){return d.rates;}},
+    {url:'https://api.exchangerate-api.com/v4/latest/TWD', parse:function(d){return d.rates;}},
+    {url:'https://api.fxratesapi.com/latest?base=TWD', parse:function(d){return d.rates;}}
   ];
   for(var i=0;i<apis.length;i++){
     try{
-      var r=await fetch(apis[i]);
+      var ctrl=new AbortController();
+      var tid=setTimeout(function(){ctrl.abort();},5000);
+      var r=await fetch(apis[i].url,{signal:ctrl.signal});
+      clearTimeout(tid);
       var d=await r.json();
-      // open.er-api uses d.rates, exchangerate-api also uses d.rates
-      var rates=d.rates||d.conversion_rates;
-      if(rates&&rates.USD){
-        D.fx={USD:1/rates.USD,JPY:1/rates.JPY,COP:1/rates.COP};
+      var rates=apis[i].parse(d);
+      if(rates&&rates.USD&&rates.JPY){
+        D.fx={
+          USD:parseFloat((1/rates.USD).toFixed(4)),
+          JPY:parseFloat((1/rates.JPY).toFixed(6)),
+          COP:rates.COP?parseFloat((1/rates.COP).toFixed(8)):D.fx.COP
+        };
         sv();rFxBar();
-        return;
+        if(curP===1)rBkList();
+        return true;
       }
     }catch(e){}
   }
+  return false;
 }
+
 function rFxBar(){var el=document.getElementById('fxbar');if(el)el.textContent='匯率：1 USD=NT$'+(D.fx.USD?D.fx.USD.toFixed(2):'—')+' / 1 JPY=NT$'+(D.fx.JPY?D.fx.JPY.toFixed(4):'—')+' / 1 COP=NT$'+(D.fx.COP?D.fx.COP.toFixed(6):'—');}
 
 function uCurHint(){var cur=document.getElementById('bc2').value,amt=parseFloat(document.getElementById('bc3').value)||0;document.getElementById('bclb').textContent='餘額('+cur+')';var h=document.getElementById('bchint');if(cur!=='TWD'&&amt>0){h.textContent='≈ NT$'+Math.round(t2w(amt,cur)).toLocaleString()+' 台幣';h.style.display='block';}else h.style.display='none';}
@@ -667,38 +678,41 @@ function twMktOpen(){
 }
 function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
 
-// Fetch realtime price from TWSE MIS API
+// Fetch realtime price - Yahoo Finance has CORS headers
 async function fetchRealtime(code){
-  var prefixes=['tse','otc'];
-  for(var pi=0;pi<prefixes.length;pi++){
-    try{
-      var url='https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch='+prefixes[pi]+'_'+code+'.tw&json=1&delay=0';
-      var r=await fetch(url);
-      var d=await r.json();
-      if(d.msgArray&&d.msgArray[0]){
-        var m=d.msgArray[0];
-        // z=last trade, b=best bid, a=best ask; use first non-dash value
-        var zv=m.z&&m.z!=='-'?parseFloat(m.z):NaN;
-        var bv=m.b&&m.b!=='-'?parseFloat(m.b):NaN;
-        var av=m.a&&m.a!=='-'?parseFloat(m.a):NaN;
-        var p=!isNaN(zv)?zv:(!isNaN(bv)?bv:av);
-        var y=m.y&&m.y!=='-'?parseFloat(m.y):NaN;
-        if(!isNaN(p)&&p>0){
-          var chg=(!isNaN(y)&&y>0)?parseFloat(((p-y)/y*100).toFixed(2)):0;
+  try{
+    // Yahoo Finance: code.TW for TWSE, code.TWO for OTC
+    var suffixes=['.TW','.TWO'];
+    for(var si=0;si<suffixes.length;si++){
+      try{
+        var ctrl=new AbortController();
+        var tid=setTimeout(function(){ctrl.abort();},6000);
+        var url='https://query1.finance.yahoo.com/v8/finance/chart/'+code+suffixes[si]+'?interval=1d&range=2d';
+        var r=await fetch(url,{signal:ctrl.signal});
+        clearTimeout(tid);
+        var d=await r.json();
+        var meta=d&&d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;
+        if(meta&&meta.regularMarketPrice){
+          var p=meta.regularMarketPrice;
+          var prev=meta.chartPreviousClose||meta.previousClose||p;
+          var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
           return{price:p,chg:chg,pd:null};
         }
-      }
-    }catch(e){}
-  }
+      }catch(e){}
+    }
+  }catch(e){}
   return null;
 }
+
 async function fetchClose(code){
+  var now=new Date();
   try{
-    var now=new Date();
     for(var mo=0;mo<=2;mo++){
       var d2=new Date(now.getFullYear(),now.getMonth()-mo,1);
       var ym=d2.getFullYear()+''+String(d2.getMonth()+1).padStart(2,'0')+'01';
-      var r=await fetch('https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym+'&stockNo='+code);
+      // Add cache-buster so browser doesn't serve stale data
+      var url='https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym+'&stockNo='+code+'&_='+Date.now();
+      var r=await fetch(url);
       var data=await r.json();
       if(data.data&&data.data.length>0){
         var last=data.data[data.data.length-1];
@@ -707,12 +721,24 @@ async function fetchClose(code){
         var chg=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
         var parts=last[0].split('/');
         var dl=parts.length===3?parts[1]+'/'+parts[2]:last[0];
-        return{price:price,chg:chg,pd:dl,rt:false};
+        return{price:price,chg:chg,pd:dl};
       }
+    }
+  }catch(e){}
+  // OTC market fallback for ETFs
+  try{
+    var otcUrl='https://www.tpex.org.tw/www/zh-tw/fund/dailyClose?date='+now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+String(now.getDate()).padStart(2,'0')+'&type=EW&id='+code+'&response=json';
+    var r2=await fetch(otcUrl);
+    var d2=await r2.json();
+    if(d2.tables&&d2.tables[0]&&d2.tables[0].data&&d2.tables[0].data.length>0){
+      var row=d2.tables[0].data[0];
+      var price=parseFloat(row[2]);
+      if(!isNaN(price)&&price>0)return{price:price,chg:0,pd:null};
     }
   }catch(e){}
   return null;
 }
+
 async function fetchPrice(code){
   var rt=await fetchRealtime(code);
   if(rt)return rt;
@@ -785,27 +811,23 @@ async function pushGs(){
       bldPayload('expenses',D.expenses,['id','cat','amt','desc','date']),
       bldPayload('incomes',D.incomes,['id','cat','amt','desc','date','dep','depBk','cur','rawAmt'])
     ];
-    // Try GET-based write (new AS) first
-    var encoded=encodeURIComponent(JSON.stringify(sheets[0]));
-    var probe=await fetch(D.gsUrl+'?action=write&payload='+encoded);
-    var probeRes=await probe.json();
-    if(probeRes.data!==undefined){
-      // Old AS detected - it returned data instead of {ok:true}
-      // Fall back to POST for each sheet
-      for(var i=0;i<sheets.length;i++){
-        await fetch(D.gsUrl,{method:'POST',body:JSON.stringify(sheets[i])});
-      }
-      document.getElementById('gsd').className='gsd on';
-      toast('已同步 (建議更新Apps Script)','g');
+    // Test if new AS is deployed (supports action=write)
+    var testUrl=D.gsUrl+'?action=write&payload='+encodeURIComponent(JSON.stringify(sheets[0]));
+    var testR=await fetch(testUrl);
+    var testJ=await testR.json();
+    if(testJ.data!==undefined){
+      // Old AS detected - cannot write via POST (302 redirect drops body)
+      document.getElementById('gsd').className='gsd';
+      toast('請至設定頁複製新腳本並重新部署 Apps Script','r');
       return;
     }
-    if(!probeRes.ok)throw new Error(probeRes.error||'write failed');
+    if(!testJ.ok) throw new Error(testJ.error||'寫入失敗');
     // New AS confirmed - write remaining sheets
-    for(var j=1;j<sheets.length;j++){
-      var enc=encodeURIComponent(JSON.stringify(sheets[j]));
-      var r=await fetch(D.gsUrl+'?action=write&payload='+enc);
-      var res=await r.json();
-      if(!res.ok)throw new Error(res.error||'write failed');
+    for(var i=1;i<sheets.length;i++){
+      var url=D.gsUrl+'?action=write&payload='+encodeURIComponent(JSON.stringify(sheets[i]));
+      var r=await fetch(url);
+      var j=await r.json();
+      if(!j.ok) throw new Error(j.error||'寫入失敗 '+sheets[i].sheet);
     }
     document.getElementById('gsd').className='gsd on';
     toast('已同步至 Google Sheet ✓','t');
