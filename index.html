@@ -234,7 +234,7 @@ html,body{height:100%;background:var(--n0);color:var(--t1);font-family:var(--fb)
 
 <div class="ov" id="mInc"><div class="mo"><button class="mc" onclick="cMo('mInc')">✕</button><h2 id="mitt">記錄收入</h2><div class="fi"><label>類別</label><select id="ic0"><option value="salary">💼 薪資</option><option value="bonus">🎁 獎金/Bonus</option><option value="stock_profit">📈 股票獲利</option><option value="dividend">💰 股息</option><option value="interest">🏦 利息</option><option value="rental">🏠 租金</option><option value="freelance">💻 接案/副業</option><option value="other_income">📌 其他</option></select></div><div class="fr"><div class="fi"><label>幣別</label><select id="ic1" onchange="uIncHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option></select></div><div class="fi"><label id="iclb">金額(TWD)</label><input id="ic2" type="number" placeholder="50000" oninput="uIncHint()"/></div></div><div class="hb hbt" id="ichint" style="display:none"></div><div class="fi"><label>日期</label><input id="ic3" type="date"/></div><div class="fi"><label>說明</label><input id="ic4" type="text" placeholder="例：3月薪資"/></div><div class="fi"><label>存入銀行帳戶(選填)</label><select id="ic5" onchange="uDepHint()"><option value="">— 不存入 —</option></select></div><div id="idepf" style="display:none"><div class="fi"><label>存入金額(NT$)</label><input id="ic6" type="number" placeholder="0" min="0" oninput="uDepWarn()"/></div><div class="hb hbt" id="iphint"></div><div class="hb hbr" id="ipwarn" style="display:none;margin-top:4px"></div></div><div class="mf"><button class="btn" onclick="cMo('mInc')">取消</button><button class="btn bpr" id="mits" onclick="sbInc()">記錄</button></div></div></div>
 
-<div class="ov" id="mExp"><div class="mo"><button class="mc" onclick="cMo('mExp')">✕</button><h2 id="mett">記錄支出</h2><div class="fi"><label>類別</label><select id="ec0"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="other">📌 其他</option></select></div><div class="fr"><div class="fi"><label>金額(NT$)</label><input id="ec1" type="number" placeholder="350"/></div><div class="fi"><label>日期</label><input id="ec2" type="date"/></div></div><div class="fi"><label>說明</label><input id="ec3" type="text" placeholder="例：午餐"/></div><div class="mf"><button class="btn" onclick="cMo('mExp')">取消</button><button class="btn bpr" id="mets" onclick="sbExp()">記錄</button></div></div></div>
+<div class="ov" id="mExp"><div class="mo"><button class="mc" onclick="cMo('mExp')">✕</button><h2 id="mett">記錄支出</h2><div class="fi"><label>類別</label><select id="ec0"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="other">📌 其他</option></select></div><div class="fr"><div class="fi"><label>幣別</label><select id="ec4" onchange="uExpHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option><option value="JPY">JPY 日幣</option><option value="EUR">EUR 歐元</option><option value="COP">COP 披索</option></select></div><div class="fi"><label id="eclb">金額(TWD)</label><input id="ec1" type="number" placeholder="350" oninput="uExpHint()"/></div></div><div class="hb hbt" id="echint" style="display:none"></div><div class="fr"><div class="fi"><label>日期</label><input id="ec2" type="date"/></div><div class="fi"><label>說明</label><input id="ec3" type="text" placeholder="例：午餐"/></div></div><div class="mf"><button class="btn" onclick="cMo('mExp')">取消</button><button class="btn bpr" id="mets" onclick="sbExp()">記錄</button></div></div></div>
 
 <div class="bnr" id="bnr"><div style="display:flex;align-items:center;gap:9px"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#00C9A7" stroke-width="1.3"/><line x1="7.5" y1="4.5" x2="7.5" y2="8.5" stroke="#00C9A7" stroke-width="1.3" stroke-linecap="round"/><circle cx="7.5" cy="10.5" r=".7" fill="#00C9A7"/></svg><span style="font-size:12px;color:var(--t2)" id="bnrmsg">建議備份</span></div><div style="display:flex;gap:7px"><button class="btn bsm" style="border-color:var(--tl);color:var(--tl)" onclick="pushGs();hideBnr()">同步Sheet</button><button class="btn bsm" onclick="expJson();hideBnr()">匯出JSON</button><button class="btn bsm" onclick="hideBnr()" style="color:var(--t3)">稍後</button></div></div>
 
@@ -264,7 +264,7 @@ function doPost(e){try{var p=JSON.parse(e.postData.contents),ss=SpreadsheetApp.g
 
 var SK='fl9';
 function load(){for(var i=0,ks=[SK,'fl8','fl7','fl6','fl5'];i<ks.length;i++){var r=localStorage.getItem(ks[i]);if(r){try{var d=JSON.parse(r);if(ks[i]!==SK)localStorage.setItem(SK,r);return d;}catch(e){}}}return null;}
-var D=load()||{stocks:[{code:'2330',name:'台積電',type:'stock',shares:1,cost:580,price:null,chg:null,pd:null},{code:'0050',name:'元大台灣50',type:'etf',shares:3,cost:140,price:null,chg:null,pd:null}],banks:[{name:'台灣銀行',type:'活期存款',amt:800000,cur:'TWD',color:BC[0],note:'薪資入帳'},{name:'國泰世華',type:'定期存款',amt:300000,cur:'TWD',color:BC[1],note:''},{name:'個人',type:'活期存款',amt:50000,cur:'TWD',color:BC[2],note:'日常消費'}],expenses:[{id:1,cat:'food',amt:280,desc:'午餐',date:'2026-03-14'},{id:2,cat:'transport',amt:120,desc:'捷運月票',date:'2026-03-13'},{id:3,cat:'rent',amt:18000,desc:'3月房租',date:'2026-03-01'},{id:4,cat:'groceries',amt:600,desc:'全聯買菜',date:'2026-03-12'}],incomes:[{id:1,cat:'salary',amt:60000,desc:'3月薪資',date:'2026-03-05',dep:0,depBk:'',cur:'TWD',rawAmt:60000},{id:2,cat:'interest',amt:500,desc:'定存利息',date:'2026-03-10',dep:0,depBk:'',cur:'TWD',rawAmt:500}],gsUrl:'',nExp:5,nInc:3,lr:null,fx:{USD:32.5,JPY:0.22,COP:0.0079},snap:{}};
+var D=load()||{stocks:[{code:'2330',name:'台積電',type:'stock',shares:1,cost:580,price:null,chg:null,pd:null},{code:'0050',name:'元大台灣50',type:'etf',shares:3,cost:140,price:null,chg:null,pd:null}],banks:[{name:'台灣銀行',type:'活期存款',amt:800000,cur:'TWD',color:BC[0],note:'薪資入帳'},{name:'國泰世華',type:'定期存款',amt:300000,cur:'TWD',color:BC[1],note:''},{name:'個人',type:'活期存款',amt:50000,cur:'TWD',color:BC[2],note:'日常消費'}],expenses:[{id:1,cat:'food',amt:280,desc:'午餐',date:'2026-03-14'},{id:2,cat:'transport',amt:120,desc:'捷運月票',date:'2026-03-13'},{id:3,cat:'rent',amt:18000,desc:'3月房租',date:'2026-03-01'},{id:4,cat:'groceries',amt:600,desc:'全聯買菜',date:'2026-03-12'}],incomes:[{id:1,cat:'salary',amt:60000,desc:'3月薪資',date:'2026-03-05',dep:0,depBk:'',cur:'TWD',rawAmt:60000},{id:2,cat:'interest',amt:500,desc:'定存利息',date:'2026-03-10',dep:0,depBk:'',cur:'TWD',rawAmt:500}],gsUrl:'',nExp:5,nInc:3,lr:null,fx:{USD:32.5,JPY:0.22,EUR:34.0,COP:0.0079},snap:{}};
 D.banks=D.banks.map(function(b){return Object.assign({cur:'TWD'},b);});
 D.incomes=D.incomes.map(function(i){return Object.assign({dep:0,depBk:'',cur:'TWD',rawAmt:i.amt},i);});
 
@@ -319,6 +319,7 @@ async function fetchFx(){
         D.fx={
           USD:parseFloat((1/rates.USD).toFixed(4)),
           JPY:parseFloat((1/rates.JPY).toFixed(6)),
+          EUR:rates.EUR?parseFloat((1/rates.EUR).toFixed(4)):D.fx.EUR,
           COP:rates.COP?parseFloat((1/rates.COP).toFixed(8)):D.fx.COP
         };
         sv();rFxBar();
@@ -409,17 +410,57 @@ function dInc(id){
   sv();bIncF();rInc();rAll();syncQ();
 }
 
+function uExpHint(){
+  var cur=document.getElementById('ec4').value,raw=parseFloat(document.getElementById('ec1').value)||0;
+  document.getElementById('eclb').textContent='金額('+cur+')';
+  var h=document.getElementById('echint');
+  if(cur!=='TWD'&&raw>0){
+    var twd=Math.round(raw*(D.fx[cur]||1));
+    h.textContent='≈ NT$'+twd.toLocaleString()+' 台幣';
+    h.style.display='block';
+  }else h.style.display='none';
+}
 var eExpI=null;
 function oExpMo(idx){
   eExpI=(idx!==undefined&&idx!==null)?idx:null;var isE=eExpI!==null;
   document.getElementById('mett').textContent=isE?'編輯支出':'記錄支出';
   document.getElementById('mets').textContent=isE?'儲存':'記錄';
-  if(isE){var e=D.expenses[eExpI];document.getElementById('ec0').value=e.cat;document.getElementById('ec1').value=e.amt;document.getElementById('ec2').value=e.date;document.getElementById('ec3').value=e.desc;}
-  else{document.getElementById('ec1').value='';document.getElementById('ec2').value=localToday();document.getElementById('ec3').value='';}
+  document.getElementById('echint').style.display='none';
+  if(isE){
+    var e=D.expenses[eExpI];
+    document.getElementById('ec0').value=e.cat;
+    document.getElementById('ec4').value=e.cur||'TWD';
+    document.getElementById('ec1').value=e.rawAmt||e.amt;
+    document.getElementById('ec2').value=e.date;
+    document.getElementById('ec3').value=e.desc;
+    document.getElementById('eclb').textContent='金額('+(e.cur||'TWD')+')';
+  }else{
+    document.getElementById('ec4').value='TWD';
+    document.getElementById('ec1').value='';
+    document.getElementById('ec2').value=localToday();
+    document.getElementById('ec3').value='';
+    document.getElementById('eclb').textContent='金額(TWD)';
+  }
   oMo('mExp');
 }
 
-function sbExp(){var cat=document.getElementById('ec0').value,amt=parseFloat(document.getElementById('ec1').value),date=document.getElementById('ec2').value,desc=document.getElementById('ec3').value.trim()||(EC[cat]?EC[cat].l:'');if(isNaN(amt)||!date){toast('請填寫金額與日期','r');return;}if(eExpI!==null){var e=D.expenses[eExpI];e.cat=cat;e.amt=amt;e.date=date;e.desc=desc;}else{D.expenses.push({id:Date.now(),cat:cat,amt:amt,desc:desc,date:date});}sv();cMo('mExp');bExpF();rLiab();rAll();syncQ();}
+function sbExp(){
+  var cat=document.getElementById('ec0').value;
+  var cur=document.getElementById('ec4').value;
+  var raw=parseFloat(document.getElementById('ec1').value);
+  var amt=cur==='TWD'?raw:Math.round(raw*(D.fx[cur]||1));
+  var date=document.getElementById('ec2').value;
+  var desc=document.getElementById('ec3').value.trim()||(EC[cat]?EC[cat].l:'');
+  if(isNaN(raw)||!date){toast('請填寫金額與日期','r');return;}
+  var entry={id:Date.now(),cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date};
+  if(eExpI!==null){
+    var e=D.expenses[eExpI];
+    e.cat=cat;e.amt=amt;e.cur=cur;e.rawAmt=raw;e.date=date;e.desc=desc;
+  }else{
+    D.expenses.push(entry);
+  }
+  sv();cMo('mExp');bExpF();rLiab();rAll();syncQ();
+}
 function dExp(id){var sid=String(id);D.expenses=D.expenses.filter(function(e){return String(e.id)!==sid;});sv();bExpF();rLiab();rAll();syncQ();}
 
 function rKpis(){
@@ -435,10 +476,17 @@ function rKpis(){
 }
 
 function rDashStk(){
-  document.getElementById('ds0').innerHTML=D.stocks.slice(0,5).map(function(s){
+  var totalMV=0,totalCost=0;
+  var rows=D.stocks.slice(0,5).map(function(s){
     var mv=(s.price||s.cost)*s.shares*1000,cost=s.cost*s.shares*1000,pp=((mv-cost)/cost*100).toFixed(1);
+    totalMV+=mv;totalCost+=cost;
     return '<div class="item"><div style="flex:1"><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span style="font-size:13px;font-weight:500">'+s.name+'</span><span class="sc">'+s.code+'</span>'+(s.type==='etf'?'<span class="eb">ETF</span>':'')+'</div><div style="font-size:11px;color:var(--t3);margin-top:1px">'+s.shares+'張·成本'+s.cost.toLocaleString()+'元</div></div><div style="text-align:right"><div style="font-family:var(--fm);font-size:13px">'+(s.price?s.price.toLocaleString()+'元':'待更新')+'</div><div style="font-size:11px" class="'+(parseFloat(pp)>=0?'up':'dn')+'">'+(parseFloat(pp)>=0?'+':'')+pp+'%</div></div></div>';
   }).join('')||'<div style="text-align:center;padding:20px 0;color:var(--t3)">尚無持股</div>';
+  // Total P&L row
+  var totalPnl=totalMV-totalCost,totalPp=totalCost>0?((totalPnl/totalCost)*100).toFixed(2):0;
+  var pnlCls=totalPnl>=0?'up':'dn';
+  var pnlRow=D.stocks.length>0?'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--bd2);margin-top:4px"><span style="font-size:11px;color:var(--t3);font-weight:600">總損益</span><div style="text-align:right"><div style="font-family:var(--fm);font-size:13px;font-weight:500" class="'+pnlCls+'">'+(totalPnl>=0?'+':'')+fmt(totalPnl)+'</div><div style="font-size:11px" class="'+pnlCls+'">'+(parseFloat(totalPp)>=0?'+':'')+totalPp+'%</div></div></div>':'';
+  document.getElementById('ds0').innerHTML=rows+pnlRow;
 }
 
 function bDmF(){
@@ -517,7 +565,7 @@ function rLiab(){
     if(day===today)lbl='今天 '+mm+'/'+dd;
     else if(day===yesterday)lbl='昨天 '+mm+'/'+dd;
     html+='<div class="dg"><span class="dl">'+lbl+'</span><span class="dt">'+fmt(dt)+'</span></div>';
-    de.forEach(function(e){var ei=D.expenses.indexOf(e);html+='<div class="item" style="padding:7px 0"><div class="ii" style="background:'+EC[e.cat].c+'20">'+EC[e.cat].i+'</div><div class="im"><div class="in">'+e.desc+'</div><div class="is">'+EC[e.cat].l+'</div></div><div class="ar">'+fmt(e.amt)+'</div><div class="ia"><button class="ebt" onclick="oExpMo('+ei+')">✏</button><button class="dbt" onclick="dExp('+e.id+')">✕</button></div></div>';});
+    de.forEach(function(e){var ei=D.expenses.indexOf(e);html+='<div class="item" style="padding:7px 0"><div class="ii" style="background:'+EC[e.cat].c+'20">'+EC[e.cat].i+'</div><div class="im"><div class="in">'+e.desc+'</div><div class="is">'+EC[e.cat].l+(e.cur&&e.cur!=='TWD'?' · '+( e.rawAmt||e.amt).toLocaleString()+' '+e.cur:'')+'</div></div><div class="ar">'+fmt(e.amt)+'</div><div class="ia"><button class="ebt" onclick="oExpMo('+ei+')">✏</button><button class="dbt" onclick="dExp('+e.id+')">✕</button></div></div>';});
   });
   document.getElementById('expl').innerHTML=html||'<div style="text-align:center;padding:18px 0;color:var(--t3)">無支出記錄</div>';
 }
@@ -846,7 +894,7 @@ async function pullGs(){
   try{
     var r=await fetch(D.gsUrl+'?action=getAll');var d=await r.json();
     if(d.ok&&d.data){
-      if(d.data.stocks&&d.data.stocks.length)D.stocks=d.data.stocks.map(function(s){return Object.assign({},s,{shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null,pd:s.pd?ndDate(s.pd):null});});
+      if(d.data.stocks&&d.data.stocks.length)D.stocks=d.data.stocks.map(function(s){return Object.assign({},s,{code:normCode(s.code),shares:+s.shares,cost:+s.cost,price:s.price?+s.price:null,chg:s.chg?+s.chg:null,pd:s.pd?ndDate(s.pd):null});});
       if(d.data.banks&&d.data.banks.length)D.banks=d.data.banks.map(function(b){return Object.assign({cur:'TWD'},b,{amt:+b.amt});});
       if(d.data.expenses&&d.data.expenses.length){D.expenses=d.data.expenses.map(function(e){return Object.assign({},e,{id:+e.id,amt:+e.amt,date:ndDate(e.date)});});D.nExp=Math.max.apply(null,D.expenses.map(function(e){return e.id;}))+1;}
       if(d.data.incomes&&d.data.incomes.length){D.incomes=d.data.incomes.map(function(i){return Object.assign({dep:0,depBk:'',cur:'TWD',rawAmt:+i.amt},i,{id:+i.id,amt:+i.amt,dep:+(i.dep||0),date:ndDate(i.date)});});D.nInc=Math.max.apply(null,D.incomes.map(function(i){return i.id;}))+1;}
@@ -901,7 +949,7 @@ if(D.gsUrl){
             D.stocks=d.data.stocks.map(function(s,i){
               var existing=D.stocks[i]||{};
               return Object.assign({},s,{
-                shares:+s.shares,cost:+s.cost,
+                code:normCode(s.code),shares:+s.shares,cost:+s.cost,
                 // Keep live price if already fetched, otherwise use Sheet value
                 price:existing.price||( s.price?+s.price:null),
                 chg:existing.chg!==null&&existing.chg!==undefined?existing.chg:(s.chg?+s.chg:null),
