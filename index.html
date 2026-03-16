@@ -681,44 +681,49 @@ function twMktOpen(){
 }
 function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
 
-// Fetch realtime price - Yahoo Finance has CORS headers
+// Normalize stock code: TWSE APIs need leading zeros (50→0050, 830→00830)
+function normCode(code){
+  var s=String(code).trim();
+  if(s.length<=3&&!/^0/.test(s))return s.padStart(4,'0'); // 50→0050, 830→0830
+  if(s.length===3&&s.startsWith('0'))return'0'+s;          // 083→0083
+  return s;
+}
+
+// Fetch realtime price via Yahoo Finance (CORS-enabled)
 async function fetchRealtime(code){
-  try{
-    // Yahoo Finance: code.TW for TWSE, code.TWO for OTC
-    var suffixes=['.TW','.TWO'];
-    for(var si=0;si<suffixes.length;si++){
-      try{
-        var ctrl=new AbortController();
-        var tid=setTimeout(function(){ctrl.abort();},6000);
-        var url='https://query1.finance.yahoo.com/v8/finance/chart/'+code+suffixes[si]+'?interval=1d&range=2d';
-        var r=await fetch(url,{signal:ctrl.signal});
-        clearTimeout(tid);
-        var d=await r.json();
-        var meta=d&&d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;
-        if(meta&&meta.regularMarketPrice){
-          var p=meta.regularMarketPrice;
-          var prev=meta.chartPreviousClose||meta.previousClose||p;
-          var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
-          return{price:p,chg:chg,pd:null};
-        }
-      }catch(e){}
-    }
-  }catch(e){}
+  var c=normCode(code);
+  var suffixes=['.TW','.TWO'];
+  for(var si=0;si<suffixes.length;si++){
+    try{
+      var ctrl=new AbortController();
+      var tid=setTimeout(function(){ctrl.abort();},6000);
+      var r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+c+suffixes[si]+'?interval=1d&range=2d',{signal:ctrl.signal});
+      clearTimeout(tid);
+      var d=await r.json();
+      var meta=d&&d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;
+      if(meta&&meta.regularMarketPrice){
+        var p=meta.regularMarketPrice;
+        var prev=meta.chartPreviousClose||meta.previousClose||p;
+        var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
+        return{price:p,chg:chg,pd:null};
+      }
+    }catch(e){}
+  }
   return null;
 }
 
+// Fetch closing price from TWSE monthly report (works for stocks AND ETFs)
 async function fetchClose(code){
-  // STOCK_DAY works for all TWSE stocks AND ETFs (0050, 00830, etc.)
+  var c=normCode(code);
   var now=new Date();
   for(var mo=0;mo<=2;mo++){
     try{
       var d2=new Date(now.getFullYear(),now.getMonth()-mo,1);
       var ym=d2.getFullYear()+''+String(d2.getMonth()+1).padStart(2,'0')+'01';
-      var url='https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym+'&stockNo='+code+'&_='+Date.now();
+      var url='https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym+'&stockNo='+c+'&_='+Date.now();
       var r=await fetch(url);
       var data=await r.json();
       if(data.data&&data.data.length>0){
-        // Scan from last row backwards for first valid closing price
         for(var ri=data.data.length-1;ri>=0;ri--){
           var row=data.data[ri];
           var raw=String(row[6]||'').replace(/,/g,'').replace(/-+/g,'');
