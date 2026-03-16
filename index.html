@@ -470,7 +470,10 @@ function rStkTbl(){
   }
   document.getElementById('stb').innerHTML=D.stocks.map(function(s,i){
     var mv=(s.price||s.cost)*s.shares*1000,cost=s.cost*s.shares*1000,pnl=mv-cost,pp=((pnl/cost)*100).toFixed(2),cls=pnl>=0?'up':'dn';
-    var dl=s.pd?'<div style="font-size:10px;color:var(--t3);margin-top:1px">'+s.pd+'收盤</div>':'';
+    var rawPd=s.pd?String(s.pd):'';
+    // Strip ISO datetime format (from old Sheet data), keep only short dates like "03/13"
+    var cleanPd=rawPd.replace(/^\d{4}-\d{2}-\d{2}T.*/,'').trim();
+    var dl=cleanPd?'<div style="font-size:10px;color:var(--t3);margin-top:1px">'+cleanPd+'收盤</div>':'';
     return'<tr><td><div style="font-size:13px;font-weight:500">'+s.name+(s.type==='etf'?'<span class="eb">ETF</span>':'')+'</div><span class="sc">'+s.code+'</span></td><td class="sn"><div>'+(s.price?s.price.toLocaleString():'—')+'</div>'+dl+'</td><td class="sn '+(s.chg!=null?(s.chg>=0?'up':'dn'):'neu')+'">'+(s.chg!=null?fmtP(s.chg):'—')+'</td><td class="sn">'+s.shares+'</td><td class="sn">'+fmt(mv)+'</td><td class="sn '+cls+'">'+(pnl>=0?'+':'')+fmt(pnl)+'<div style="font-size:10px">'+fmtP(parseFloat(pp))+'</div></td><td><div style="display:flex;gap:4px;justify-content:flex-end"><button class="btn bsm bed" onclick="oStkMo('+i+')">編輯</button><button class="btn bsm bdn" onclick="dStk('+i+')">移除</button></div></td></tr>';
   }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--t3)">尚無持股</td></tr>';
 }
@@ -704,45 +707,96 @@ async function fetchRealtime(code){
   return null;
 }
 
-async function fetchClose(code){
+async function fetchClose(code, isEtf){
   var now=new Date();
-  try{
-    for(var mo=0;mo<=2;mo++){
-      var d2=new Date(now.getFullYear(),now.getMonth()-mo,1);
-      var ym=d2.getFullYear()+''+String(d2.getMonth()+1).padStart(2,'0')+'01';
-      // Add cache-buster so browser doesn't serve stale data
-      var url='https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym+'&stockNo='+code+'&_='+Date.now();
-      var r=await fetch(url);
-      var data=await r.json();
-      if(data.data&&data.data.length>0){
-        var last=data.data[data.data.length-1];
-        var price=parseFloat(last[6].replace(/,/g,''));
-        var prev=data.data.length>1?parseFloat(data.data[data.data.length-2][6].replace(/,/g,'')):price;
-        var chg=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
-        var parts=last[0].split('/');
-        var dl=parts.length===3?parts[1]+'/'+parts[2]:last[0];
-        return{price:price,chg:chg,pd:dl};
+
+  // ── For ETFs (0050, 00830, etc.): use TWSE ETFortune API first ──
+  if(isEtf){
+    try{
+      // ETFortune returns all listed ETFs with latest prices
+      var eu='https://www.twse.com.tw/rwd/zh/fund/ETFortune?response=json&_='+Date.now();
+      var er=await fetch(eu);
+      var ed=await er.json();
+      if(ed.data&&ed.data.length>0){
+        // Find column indices from fields array
+        var fields=ed.fields||[];
+        // Try to find price column: look for 收盤 or 最新淨值 or 成交價
+        var priceCol=-1,codeCol=-1,chgPctCol=-1;
+        for(var fi=0;fi<fields.length;fi++){
+          var f=fields[fi];
+          if(/代[碼号]|代[表]/.test(f))codeCol=fi;
+          if(/收盤|成交價|淨值/.test(f))priceCol=fi;
+          if(/漲跌幅/.test(f))chgPctCol=fi;
+        }
+        // Fallback: try common column positions
+        if(codeCol<0)codeCol=1;
+        if(priceCol<0)priceCol=3;
+        for(var ei2=0;ei2<ed.data.length;ei2++){
+          var row=ed.data[ei2];
+          var rowCode=String(row[codeCol]||'').trim().replace(/\s/g,'');
+          if(rowCode===code){
+            var price=parseFloat(String(row[priceCol]||'').replace(/,/g,''));
+            if(!isNaN(price)&&price>0){
+              var chgPct=chgPctCol>=0?parseFloat(String(row[chgPctCol]||'').replace(/[%+]/g,'')):0;
+              return{price:price,chg:isNaN(chgPct)?0:chgPct,pd:null};
+            }
+          }
+        }
       }
-    }
-  }catch(e){}
-  // OTC market fallback for ETFs
+    }catch(e){}
+    // Second ETF try: TWSE ETF individual history (TWT38U)
+    try{
+      for(var mo=0;mo<=1;mo++){
+        var d2=new Date(now.getFullYear(),now.getMonth()-mo,1);
+        var ym=d2.getFullYear()+''+String(d2.getMonth()+1).padStart(2,'0')+'01';
+        var tu='https://www.twse.com.tw/fund/TWT38U?response=json&date='+ym+'&stockNo='+code+'&_='+Date.now();
+        var tr=await fetch(tu);
+        var td=await tr.json();
+        if(td.data&&td.data.length>0){
+          var trow=td.data[td.data.length-1];
+          // TWT38U: 0=date,1=NAV,2=market close price,...
+          var tp=parseFloat(String(trow[2]||trow[1]||'').replace(/,/g,''));
+          if(!isNaN(tp)&&tp>0){
+            var tparts=String(trow[0]).split('/');
+            var tdl=tparts.length===3?tparts[1]+'/'+tparts[2]:String(trow[0]);
+            var tprev=td.data.length>1?parseFloat(String(td.data[td.data.length-2][2]||td.data[td.data.length-2][1]||'').replace(/,/g,'')):tp;
+            var tchg=tprev>0?parseFloat(((tp-tprev)/tprev*100).toFixed(2)):0;
+            return{price:tp,chg:tchg,pd:tdl};
+          }
+        }
+      }
+    }catch(e){}
+  }
+
+  // ── Regular stocks + ETF fallback: TWSE STOCK_DAY ──
   try{
-    var otcUrl='https://www.tpex.org.tw/www/zh-tw/fund/dailyClose?date='+now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+String(now.getDate()).padStart(2,'0')+'&type=EW&id='+code+'&response=json';
-    var r2=await fetch(otcUrl);
-    var d2=await r2.json();
-    if(d2.tables&&d2.tables[0]&&d2.tables[0].data&&d2.tables[0].data.length>0){
-      var row=d2.tables[0].data[0];
-      var price=parseFloat(row[2]);
-      if(!isNaN(price)&&price>0)return{price:price,chg:0,pd:null};
+    for(var mo2=0;mo2<=2;mo2++){
+      var d3=new Date(now.getFullYear(),now.getMonth()-mo2,1);
+      var ym2=d3.getFullYear()+''+String(d3.getMonth()+1).padStart(2,'0')+'01';
+      var su='https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym2+'&stockNo='+code+'&_='+Date.now();
+      var sr=await fetch(su);
+      var sd=await sr.json();
+      if(sd.data&&sd.data.length>0){
+        for(var ri=sd.data.length-1;ri>=0;ri--){
+          var srow=sd.data[ri];
+          var sp=parseFloat(String(srow[6]).replace(/,/g,''));
+          if(!isNaN(sp)&&sp>0){
+            var sprev=ri>0?parseFloat(String(sd.data[ri-1][6]).replace(/,/g,'')):sp;
+            var schg=(!isNaN(sprev)&&sprev>0)?parseFloat(((sp-sprev)/sprev*100).toFixed(2)):0;
+            var sparts=String(srow[0]).split('/');
+            var sdl=sparts.length===3?sparts[1]+'/'+sparts[2]:String(srow[0]);
+            return{price:sp,chg:schg,pd:sdl};
+          }
+        }
+      }
     }
   }catch(e){}
   return null;
 }
-
-async function fetchPrice(code){
+async function fetchPrice(code, isEtf){
   var rt=await fetchRealtime(code);
   if(rt)return rt;
-  return await fetchClose(code);
+  return await fetchClose(code, isEtf);
 }
 var rtInterval=null,fxInterval=null;
 
@@ -775,7 +829,7 @@ function setupRtInterval(){
 async function doRefresh(){
   var icon=document.getElementById('ri');icon.classList.add('spn');var ok=0;
   await fetchFx();
-  for(var i=0;i<D.stocks.length;i++){var res=await fetchPrice(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}}
+  for(var i=0;i<D.stocks.length;i++){var res=await fetchPrice(D.stocks[i].code, D.stocks[i].type==='etf');if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}}
   D.lr=new Date().toLocaleTimeString('zh-TW');sv();icon.classList.remove('spn');
   rSnap();
   if(curP===0)rAssetLine();
