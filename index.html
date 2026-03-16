@@ -185,8 +185,8 @@ html,body{height:100%;background:var(--n0);color:var(--t1);font-family:var(--fb)
     <button class="tbb" id="at2" onclick="aTab(2)">收入</button>
   </div>
   <div id="ap0">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--t2)">股票總市值<span id="stv" style="font-family:var(--fm);color:var(--t1);font-weight:500;margin-left:7px"></span></div><button class="btn bpr" onclick="oStkMo(null)">+ 新增持股</button></div>
-    <div class="card"><table class="stk" style="width:100%"><thead><tr><th>股票</th><th>收盤價</th><th>漲跌</th><th>張數</th><th>市值</th><th>損益</th><th></th></tr></thead><tbody id="stb"></tbody></table></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;color:var(--t2)">股票總市值<span id="stv" style="font-family:var(--fm);color:var(--t1);font-weight:500;margin-left:7px"></span></div><div style="display:flex;align-items:center;gap:8px"><span id="mktBadge" style="font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;display:none"></span><button class="btn bpr" onclick="oStkMo(null)">+ 新增持股</button></div></div>
+    <div class="card"><table class="stk" style="width:100%"><thead><tr><th>股票</th><th>價格</th><th>漲跌</th><th>張數</th><th>市值</th><th>損益</th><th></th></tr></thead><tbody id="stb"></tbody></table></div>
   </div>
   <div id="ap1" style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="font-size:13px;color:var(--t2)">存款合計(台幣)<span id="bkv" style="font-family:var(--fm);color:var(--t1);font-weight:500;margin-left:7px"></span></div><button class="btn bpr" onclick="oBkMo(null)">+ 新增帳戶</button></div>
@@ -420,6 +420,13 @@ function rDash(){
 
 function rStkTbl(){
   document.getElementById('stv').textContent=fmt(sMV());
+  // Update market status badge
+  var badge=document.getElementById('mktBadge');
+  if(badge){
+    if(twMktOpen()){badge.textContent='盤中即時';badge.style.background='rgba(0,201,167,.15)';badge.style.color='var(--tl)';badge.style.display='';}
+    else if(twWeekday()){badge.textContent='已收盤';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
+    else{badge.textContent='休市';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
+  }
   document.getElementById('stb').innerHTML=D.stocks.map(function(s,i){
     var mv=(s.price||s.cost)*s.shares*1000,cost=s.cost*s.shares*1000,pnl=mv-cost,pp=((pnl/cost)*100).toFixed(2),cls=pnl>=0?'up':'dn';
     var dl=s.pd?'<div style="font-size:10px;color:var(--t3);margin-top:1px">'+s.pd+'收盤</div>':'';
@@ -621,21 +628,88 @@ function rAll(){
   uGsUi();
 }
 
-async function fetchPrice(code){
-  try{var r=await fetch('https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+code+'.tw&json=1&delay=0');var d=await r.json();if(d.msgArray&&d.msgArray[0]){var m=d.msgArray[0],p=parseFloat(m.z!=='-'?m.z:(m.b||m.a)),y=parseFloat(m.y);if(!isNaN(p)&&p>0&&!isNaN(y))return{price:p,chg:parseFloat(((p-y)/y*100).toFixed(2)),pd:null};}}catch(e){}
-  try{var now2=new Date();for(var mo=0;mo<=2;mo++){var d2=new Date(now2.getFullYear(),now2.getMonth()-mo,1);var ym=d2.getFullYear()+''+String(d2.getMonth()+1).padStart(2,'0')+'01';var r2=await fetch('https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym+'&stockNo='+code);var data=await r2.json();if(data.data&&data.data.length>0){var last=data.data[data.data.length-1],price=parseFloat(last[6].replace(/,/g,'')),prev=data.data.length>1?parseFloat(data.data[data.data.length-2][6].replace(/,/g,'')):price;var chg=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0,parts=last[0].split('/'),dl=parts.length===3?parts[1]+'/'+parts[2]:last[0];return{price:price,chg:chg,pd:dl};}}}catch(e){}
+// Taiwan market: Mon-Fri 09:00-13:30 (user's local time assumed to be Taiwan UTC+8)
+function twMktOpen(){
+  var n=new Date(),day=n.getDay();
+  if(day===0||day===6)return false;
+  var mins=n.getHours()*60+n.getMinutes();
+  return mins>=9*60 && mins<13*60+30;
+}
+function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
+
+// Fetch real-time price (during market hours) via mis API
+async function fetchRealtime(code){
+  try{
+    var r=await fetch('https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+code+'.tw&json=1&delay=0');
+    var d=await r.json();
+    if(d.msgArray&&d.msgArray[0]){
+      var m=d.msgArray[0];
+      var p=parseFloat(m.z!=='-'?m.z:(m.b||m.a));
+      var y=parseFloat(m.y);
+      if(!isNaN(p)&&p>0&&!isNaN(y))return{price:p,chg:parseFloat(((p-y)/y*100).toFixed(2)),pd:null,rt:true};
+    }
+  }catch(e){}
   return null;
 }
+
+// Fetch historical closing price (after hours / weekend)
+async function fetchClose(code){
+  try{
+    var now=new Date();
+    for(var mo=0;mo<=2;mo++){
+      var d2=new Date(now.getFullYear(),now.getMonth()-mo,1);
+      var ym=d2.getFullYear()+''+String(d2.getMonth()+1).padStart(2,'0')+'01';
+      var r=await fetch('https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym+'&stockNo='+code);
+      var data=await r.json();
+      if(data.data&&data.data.length>0){
+        var last=data.data[data.data.length-1];
+        var price=parseFloat(last[6].replace(/,/g,''));
+        var prev=data.data.length>1?parseFloat(data.data[data.data.length-2][6].replace(/,/g,'')):price;
+        var chg=prev>0?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
+        var parts=last[0].split('/');
+        var dl=parts.length===3?parts[1]+'/'+parts[2]:last[0];
+        return{price:price,chg:chg,pd:dl,rt:false};
+      }
+    }
+  }catch(e){}
+  return null;
+}
+
+async function fetchPrice(code){
+  if(twMktOpen())return await fetchRealtime(code)||await fetchClose(code);
+  return await fetchClose(code)||await fetchRealtime(code);
+}
+
+var rtInterval=null; // auto-refresh interval during market hours
+
 async function doRefresh(){
   var icon=document.getElementById('ri');icon.classList.add('spn');var ok=0;
   await fetchFx();
   for(var i=0;i<D.stocks.length;i++){var res=await fetchPrice(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}}
   D.lr=new Date().toLocaleTimeString('zh-TW');sv();icon.classList.remove('spn');
-  rSnap();// Update today's snapshot with fresh market prices
-  if(curP===0)rAssetLine();// Re-render line chart with updated value
+  rSnap();
+  if(curP===0)rAssetLine();
   var lrt=document.getElementById('lrt');if(lrt)lrt.textContent=D.lr;
-  toast(ok>0?'已更新'+ok+'支股票報價及匯率':'目前無法取得報價',ok>0?'t':'g');
+  var statusMsg=ok>0?(twMktOpen()?'即時報價 · 已更新'+ok+'支':'收盤報價 · 已更新'+ok+'支'):'目前無法取得報價';
+  toast(statusMsg,ok>0?'t':'g');
   rAll();rFxBar();
+  // Set up / clear 10-second auto-refresh based on market hours
+  setupRtInterval();
+}
+
+function setupRtInterval(){
+  if(twMktOpen()){
+    if(!rtInterval){
+      rtInterval=setInterval(async function(){
+        if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;return;}
+        var ok=0;
+        for(var i=0;i<D.stocks.length;i++){var res=await fetchRealtime(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;ok++;}}
+        if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rAll();rSnap();}
+      },10000);
+    }
+  }else{
+    if(rtInterval){clearInterval(rtInterval);rtInterval=null;}
+  }
 }
 
 function uGsUi(){
@@ -654,13 +728,14 @@ async function pushGs(){
   D.lastGsSync=new Date().toISOString();sv();
   document.getElementById('gsd').className='gsd sy';
   try{
-    var post=function(body){return fetch(D.gsUrl,{method:'POST',body:JSON.stringify(body)});};
+    // Use text/plain to avoid CORS preflight - Apps Script still receives via e.postData.contents
+    var post=function(body){return fetch(D.gsUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});};
     await post(bldPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','pd']));
     await post(bldPayload('banks',D.banks,['name','type','amt','cur','color','note']));
     await post(bldPayload('expenses',D.expenses,['id','cat','amt','desc','date']));
     await post(bldPayload('incomes',D.incomes,['id','cat','amt','desc','date','dep','depBk','cur','rawAmt']));
     document.getElementById('gsd').className='gsd on';toast('已同步至 Google Sheet','t');
-  }catch(e){document.getElementById('gsd').className='gsd';toast('同步失敗','r');}
+  }catch(e){document.getElementById('gsd').className='gsd';toast('同步失敗: '+e.message,'r');}
 }
 async function pullGs(){
   if(!D.gsUrl){toast('請先連結 Google Sheet','r');return;}
@@ -707,6 +782,7 @@ for(var pi=0;pi<5;pi++){document.getElementById('pg'+pi).style.display='none';}
 go(0);
 setTimeout(doRefresh,1000);
 setTimeout(chkBnr,4000);
+setTimeout(setupRtInterval,1500);// Start auto-refresh if market is open
 
 // Auto-sync from Sheet on startup if GS URL is set
 // Runs silently after 2s - won't block initial render
