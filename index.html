@@ -637,22 +637,29 @@ function twMktOpen(){
 }
 function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
 
-// Fetch real-time price (during market hours) via mis API
+// Fetch price from TWSE MIS API (works during AND after market hours)
 async function fetchRealtime(code){
-  try{
-    var r=await fetch('https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+code+'.tw&json=1&delay=0');
-    var d=await r.json();
-    if(d.msgArray&&d.msgArray[0]){
-      var m=d.msgArray[0];
-      var p=parseFloat(m.z!=='-'?m.z:(m.b||m.a));
-      var y=parseFloat(m.y);
-      if(!isNaN(p)&&p>0&&!isNaN(y))return{price:p,chg:parseFloat(((p-y)/y*100).toFixed(2)),pd:null,rt:true};
-    }
-  }catch(e){}
+  var prefixes=['tse','otc'];
+  for(var pi=0;pi<prefixes.length;pi++){
+    try{
+      var url='https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch='+prefixes[pi]+'_'+code+'.tw&json=1&delay=0';
+      var r=await fetch(url);
+      var d=await r.json();
+      if(d.msgArray&&d.msgArray[0]){
+        var m=d.msgArray[0];
+        if(!m.c||m.c==='')continue;
+        var y=parseFloat(m.y);
+        var z=parseFloat(m.z);
+        var p=(!isNaN(z)&&z>0)?z:y;
+        if(!isNaN(p)&&p>0){
+          var chg=(!isNaN(y)&&y>0)?parseFloat(((p-y)/y*100).toFixed(2)):0;
+          return{price:p,chg:chg,pd:null,rt:(!isNaN(z)&&z>0)};
+        }
+      }
+    }catch(e){}
+  }
   return null;
 }
-
-// Fetch historical closing price (after hours / weekend)
 async function fetchClose(code){
   try{
     var now=new Date();
@@ -674,14 +681,39 @@ async function fetchClose(code){
   }catch(e){}
   return null;
 }
-
 async function fetchPrice(code){
-  if(twMktOpen())return await fetchRealtime(code)||await fetchClose(code);
-  return await fetchClose(code)||await fetchRealtime(code);
+  var rt=await fetchRealtime(code);
+  if(rt)return rt;
+  return await fetchClose(code);
 }
+var rtInterval=null,fxInterval=null;
 
-var rtInterval=null; // auto-refresh interval during market hours
-
+function setupRtInterval(){
+  // Stock 10s refresh during market hours
+  if(twMktOpen()){
+    if(!rtInterval){
+      rtInterval=setInterval(async function(){
+        if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;rStkTbl();return;}
+        var ok=0;
+        for(var i=0;i<D.stocks.length;i++){
+          var res=await fetchRealtime(D.stocks[i].code);
+          if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}
+        }
+        if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rStkTbl();rKpis();rSnap();}
+      },10000);
+    }
+  }else{
+    if(rtInterval){clearInterval(rtInterval);rtInterval=null;}
+  }
+  // FX every 60s always (exchangerate-api rate limit friendly)
+  if(!fxInterval){
+    fxInterval=setInterval(async function(){
+      await fetchFx();
+      if(curP===1)rBkList();
+      rKpis();
+    },60000);
+  }
+}
 async function doRefresh(){
   var icon=document.getElementById('ri');icon.classList.add('spn');var ok=0;
   await fetchFx();
@@ -697,20 +729,7 @@ async function doRefresh(){
   setupRtInterval();
 }
 
-function setupRtInterval(){
-  if(twMktOpen()){
-    if(!rtInterval){
-      rtInterval=setInterval(async function(){
-        if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;return;}
-        var ok=0;
-        for(var i=0;i<D.stocks.length;i++){var res=await fetchRealtime(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;ok++;}}
-        if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rAll();rSnap();}
-      },10000);
-    }
-  }else{
-    if(rtInterval){clearInterval(rtInterval);rtInterval=null;}
-  }
-}
+
 
 function uGsUi(){
   var on=!!D.gsUrl;
@@ -728,8 +747,11 @@ async function pushGs(){
   D.lastGsSync=new Date().toISOString();sv();
   document.getElementById('gsd').className='gsd sy';
   try{
-    // Use text/plain to avoid CORS preflight - Apps Script still receives via e.postData.contents
-    var post=function(body){return fetch(D.gsUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});};
+    // mode:'no-cors' bypasses CORS entirely - data arrives at Apps Script,
+    // we just can't read the response (which is fine for write-only sync)
+    var post=function(body){
+      return fetch(D.gsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(body)});
+    };
     await post(bldPayload('stocks',D.stocks,['code','name','type','shares','cost','price','chg','pd']));
     await post(bldPayload('banks',D.banks,['name','type','amt','cur','color','note']));
     await post(bldPayload('expenses',D.expenses,['id','cat','amt','desc','date']));
