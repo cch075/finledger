@@ -734,118 +734,124 @@ function twMktOpen(){
 }
 function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
 
-// Normalize stock code: TWSE APIs need leading zeros (50→0050, 830→00830)
+// ══ 股票報價 ══════════════════════════════════════════════════════
+// 來源優先順序（盤中）：
+//   1. Yahoo Finance query2（有 CORS，真正即時）
+//   2. TWSE openapi STOCK_DAY_ALL（有 CORS，每幾分鐘更新）
+//   3. TWSE STOCK_DAY 月報（有 CORS，收盤後 fallback）
+
+// 正規化代碼：確保代碼格式正確
 function normCode(code){
   var s=String(code).trim();
-  if(s.length<=3&&!/^0/.test(s))return s.padStart(4,'0'); // 50→0050, 830→0830
-  if(s.length===3&&s.startsWith('0'))return'0'+s;          // 083→0083
+  if(s.length===2)return'00'+s;
+  if(s.length===3&&!/^0/.test(s))return'0'+s;
   return s;
 }
-
-// ── 股票報價邏輯 ─────────────────────────────────────────────────
-//
-// 盤中：Yahoo Finance query2（有 CORS）→ 即時成交價
-// 盤後/假日：TWSE STOCK_DAY 月報 → 最近收盤價
-//
-// Yahoo Finance CORS 說明：
-//   query2.finance.yahoo.com 支援跨來源請求
-//   meta.regularMarketPrice 在盤中為即時成交，盤後為收盤價
-
-// 正規化代碼：回傳所有可能格式供 API 查詢
 function codeVariants(code){
   var s=String(code).trim();
-  var candidates=[];
-  // 加入原始值
-  candidates.push(s);
-  // 去掉前導零的版本（TWSE STOCK_DAY 有時需要無前導零）
-  var stripped=s.replace(/^0+/,'');
-  if(stripped&&stripped!==s)candidates.push(stripped);
-  // 補齊版本
-  if(s.length===2)candidates.push('00'+s,s.padStart(4,'0'));
-  if(s.length===3&&!/^0/.test(s)){candidates.push('0'+s,'00'+s);}
-  if(stripped.length===2)candidates.push('00'+stripped,stripped.padStart(4,'0'));
-  if(stripped.length===3&&!/^0/.test(stripped)){candidates.push('0'+stripped,'00'+stripped);}
-  // 去重並過濾
-  var seen={},out=[];
-  candidates.forEach(function(c){if(c&&!seen[c]){seen[c]=1;out.push(c);}});
-  return out;
+  var out=[s];
+  var stripped=s.replace(/^0+/,'')||s;
+  if(stripped!==s)out.push(stripped);
+  if(s.length===2){out.push('00'+s);}
+  if(s.length===3&&!/^0/.test(s)){out.push('0'+s);out.push('00'+s);}
+  if(stripped.length===2){out.push('00'+stripped);}
+  if(stripped.length===3&&!/^0/.test(stripped)){out.push('0'+stripped);out.push('00'+stripped);}
+  var seen={},res=[];
+  out.forEach(function(c){if(c&&!seen[c]){seen[c]=1;res.push(c);}});
+  return res;
 }
 
-// Yahoo Finance 即時/收盤價（query2 支援 CORS）
+// Yahoo Finance query2 - 真正即時報價（盤中 tick-by-tick）
 async function yahooFetch(code){
   var variants=codeVariants(code);
   var suffixes=['.TW','.TWO'];
   for(var vi=0;vi<variants.length;vi++){
     for(var si=0;si<suffixes.length;si++){
+      var ctrl=new AbortController();
+      var tid=setTimeout(function(){ctrl.abort();},7000);
       try{
-        var ctrl=new AbortController();
-        var tid=setTimeout(function(){ctrl.abort();},8000);
-        // interval=1m range=1d → 盤中取得即時分鐘價
-        var url='https://query2.finance.yahoo.com/v8/finance/chart/'+variants[vi]+suffixes[si]+'?interval=1m&range=1d&includePrePost=false';
+        var url='https://query2.finance.yahoo.com/v8/finance/chart/'+variants[vi]+suffixes[si]+'?interval=1d&range=5d&events=div%2Csplit';
         var r=await fetch(url,{signal:ctrl.signal});
         clearTimeout(tid);
         if(!r.ok)continue;
         var d=await r.json();
-        var res=d&&d.chart&&d.chart.result&&d.chart.result[0];
-        if(!res)continue;
-        var meta=res.meta;
+        if(!d||!d.chart||d.chart.error)continue;
+        var result=d.chart.result&&d.chart.result[0];
+        if(!result)continue;
+        var meta=result.meta;
         if(!meta)continue;
         var p=meta.regularMarketPrice;
         if(!p||p<=0)continue;
         var prev=meta.chartPreviousClose||meta.previousClose||p;
         var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
         return{price:p,chg:chg,pd:null,rt:true};
-      }catch(e){}
+      }catch(e){clearTimeout(tid);}
     }
   }
   return null;
 }
 
-// MIS 即時（備用，部分瀏覽器有 CORS 問題）
-async function misFetch(code){
+// TWSE openapi STOCK_DAY_ALL - 每幾分鐘更新（盤中備用）
+var twseAllCache={data:null,etfData:null,ts:0};
+async function fetchTWSEAll(){
+  var now=Date.now();
+  if(twseAllCache.ts>0&&now-twseAllCache.ts<30000)return; // cache 30s
+  twseAllCache.ts=now;
+  var ctrl=new AbortController();
+  var tid=setTimeout(function(){ctrl.abort();},8000);
+  try{
+    var r=await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(r.ok){
+      var d=await r.json();
+      if(Array.isArray(d)&&d.length>0){
+        twseAllCache.data={};
+        d.forEach(function(item){if(item.Code)twseAllCache.data[item.Code]=item;});
+      }
+    }
+  }catch(e){clearTimeout(tid);}
+  var ctrl2=new AbortController();
+  var tid2=setTimeout(function(){ctrl2.abort();},8000);
+  try{
+    var r2=await fetch('https://openapi.twse.com.tw/v1/ETF/STOCK_DAY_ALL',{signal:ctrl2.signal});
+    clearTimeout(tid2);
+    if(r2.ok){
+      var d2=await r2.json();
+      if(Array.isArray(d2)&&d2.length>0){
+        twseAllCache.etfData={};
+        d2.forEach(function(item){if(item.Code)twseAllCache.etfData[item.Code]=item;});
+      }
+    }
+  }catch(e){clearTimeout(tid2);}
+}
+async function twseAllFetch(code){
+  await fetchTWSEAll();
   var variants=codeVariants(code);
-  var prefixes=['tse','otc'];
-  for(var vi=0;vi<variants.length;vi++){
-    for(var pi=0;pi<prefixes.length;pi++){
-      try{
-        var ctrl=new AbortController();
-        var tid=setTimeout(function(){ctrl.abort();},5000);
-        var url='https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch='+prefixes[pi]+'_'+variants[vi]+'.tw&json=1&delay=0';
-        var r=await fetch(url,{signal:ctrl.signal});
-        clearTimeout(tid);
-        var d=await r.json();
-        if(d.msgArray&&d.msgArray[0]){
-          var m=d.msgArray[0];
-          var zv=m.z&&m.z!=='-'?parseFloat(m.z):NaN;
-          var bv=m.b&&m.b!=='-'?parseFloat(m.b.split('_')[0]):NaN;
-          var av=m.a&&m.a!=='-'?parseFloat(m.a.split('_')[0]):NaN;
-          var yv=m.y&&m.y!=='-'?parseFloat(m.y):NaN;
-          var p=!isNaN(zv)?zv:(!isNaN(bv)&&!isNaN(av)?(bv+av)/2:NaN);
-          if(!isNaN(p)&&p>0){
-            var chg=(!isNaN(yv)&&yv>0)?parseFloat(((p-yv)/yv*100).toFixed(2)):0;
-            return{price:p,chg:chg,pd:null,rt:true};
-          }
-        }
-      }catch(e){}
+  var srcs=[twseAllCache.etfData,twseAllCache.data];
+  for(var si=0;si<srcs.length;si++){
+    var src=srcs[si];if(!src)continue;
+    for(var vi=0;vi<variants.length;vi++){
+      var item=src[variants[vi]];
+      if(!item)continue;
+      var raw=String(item.ClosingPrice||'').replace(/,/g,'').replace(/-+/g,'');
+      var price=parseFloat(raw);
+      if(!isNaN(price)&&price>0){
+        var prevRaw=String(item.Change||item.PreviousClose||'').replace(/[+\-,]/g,'');
+        var chgRaw=String(item.Change||'').replace(/,/g,'');
+        var chgVal=parseFloat(chgRaw);
+        var prevPrice=(!isNaN(chgVal)&&price-chgVal>0)?(price-chgVal):price;
+        var chg=prevPrice>0?parseFloat(((price-prevPrice)/prevPrice*100).toFixed(2)):0;
+        return{price:price,chg:chg,pd:null,rt:true};
+      }
     }
   }
   return null;
 }
 
-async function fetchRealtime(code){
-  // Yahoo Finance 優先（CORS 穩定）
-  var r=await yahooFetch(code);
-  if(r)return r;
-  // MIS 備用
-  r=await misFetch(code);
-  if(r)return r;
-  return null;
-}
-
-// TWSE 月報收盤價（離市後 fallback）
+// TWSE STOCK_DAY 月報 - 收盤後 fallback（有正確日期）
 async function fetchClose(code){
-  var now=new Date();
   var variants=codeVariants(code);
+  var now=new Date();
   for(var mo=0;mo<=2;mo++){
     for(var vi=0;vi<variants.length;vi++){
       try{
@@ -875,12 +881,17 @@ async function fetchClose(code){
   return null;
 }
 
-// 盤中用即時；盤後/假日用月報
+// 主要入口：盤中優先即時，盤後用月報
 async function fetchPrice(code){
   if(twMktOpen()){
-    var rt=await fetchRealtime(code);
-    if(rt)return rt;
+    // 1. Yahoo Finance（真正即時）
+    var r1=await yahooFetch(code);
+    if(r1)return r1;
+    // 2. TWSE openapi（每幾分鐘更新）
+    var r2=await twseAllFetch(code);
+    if(r2)return r2;
   }
+  // 3. 月報 fallback（收盤後/假日）
   return await fetchClose(code);
 }
 var rtInterval=null,fxInterval=null;
