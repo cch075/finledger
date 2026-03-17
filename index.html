@@ -742,64 +742,63 @@ function normCode(code){
   return s;
 }
 
-// Cache for TWSE OpenAPI data (fetched once per refresh cycle)
-var twseCache={data:null,etfData:null,ts:0};
+// ── 即時報價：台灣證交所 MIS API ──────────────────────────────
+// mis.twse.com.tw 是 TWSE 官方即時 API，盤中每 5 秒更新
 
-// Fetch ALL stocks from TWSE OpenAPI (official, has CORS headers)
-async function fetchTWSEAll(){
-  var now=Date.now();
-  // Cache valid for 8 seconds (within 10s interval)
-  if(twseCache.ts>0&&now-twseCache.ts<8000)return;
-  twseCache.ts=now;
-  try{
-    var ctrl=new AbortController();
-    var tid=setTimeout(function(){ctrl.abort();},7000);
-    var r=await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL&_='+now,{signal:ctrl.signal});
-    clearTimeout(tid);
-    var d=await r.json();
-    if(Array.isArray(d)&&d.length>0){
-      twseCache.data={};
-      d.forEach(function(item){if(item.Code)twseCache.data[item.Code]=item;});
-    }
-  }catch(e){twseCache.data=null;}
-  try{
-    var ctrl2=new AbortController();
-    var tid2=setTimeout(function(){ctrl2.abort();},7000);
-    var r2=await fetch('https://openapi.twse.com.tw/v1/ETF/STOCK_DAY_ALL&_='+now,{signal:ctrl2.signal});
-    clearTimeout(tid2);
-    var d2=await r2.json();
-    if(Array.isArray(d2)&&d2.length>0){
-      twseCache.etfData={};
-      d2.forEach(function(item){if(item.Code)twseCache.etfData[item.Code]=item;});
-    }
-  }catch(e){twseCache.etfData=null;}
+// 把使用者輸入的短代碼補回完整格式，供 MIS API 查詢
+function codeVariants(code){
+  var s=String(code).trim();
+  var out=[s];
+  // 2碼 e.g. "50" → "0050"
+  if(s.length===2)out.push('00'+s);
+  // 3碼 e.g. "830","878" → "00830","00878" (新型ETF) 且也試 "0830"
+  if(s.length===3&&!/^0/.test(s)){out.push('0'+s);out.push('00'+s);}
+  // 4碼 e.g. "0050" 也試 "00050" (罕見但保險)
+  // 去掉重複並只保留合理長度
+  var seen={};
+  return out.filter(function(c){if(!seen[c]&&c.length>=4&&c.length<=6){seen[c]=1;return true;}return false;});
 }
 
-// Get realtime price from TWSE OpenAPI cache
+// 單支即時報價 (MIS API)
+async function misFetch(c,prefix){
+  var ctrl=new AbortController();
+  var tid=setTimeout(function(){ctrl.abort();},5000);
+  try{
+    var url='https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch='+prefix+'_'+c+'.tw&json=1&delay=0';
+    var r=await fetch(url,{signal:ctrl.signal});
+    clearTimeout(tid);
+    var d=await r.json();
+    if(d.msgArray&&d.msgArray[0]){
+      var m=d.msgArray[0];
+      // z=最新成交, b=最佳買價, a=最佳賣價, y=昨日收盤
+      var zv=m.z&&m.z!=='-'?parseFloat(m.z):NaN;
+      var bv=m.b&&m.b!=='-'?parseFloat(m.b.split('_')[0]):NaN;
+      var av=m.a&&m.a!=='-'?parseFloat(m.a.split('_')[0]):NaN;
+      var yv=m.y&&m.y!=='-'?parseFloat(m.y):NaN;
+      // 優先用最新成交價；若尚未成交但已開盤用買賣均值；最後用昨收
+      var p=!isNaN(zv)?zv:(!isNaN(bv)&&!isNaN(av)?(bv+av)/2:(!isNaN(bv)?bv:(!isNaN(av)?av:NaN)));
+      if(!isNaN(p)&&p>0){
+        var chg=(!isNaN(yv)&&yv>0)?parseFloat(((p-yv)/yv*100).toFixed(2)):0;
+        return{price:p,chg:chg,pd:null,rt:true};
+      }
+    }
+  }catch(e){clearTimeout(tid);}
+  return null;
+}
+
 async function fetchRealtime(code){
-  var c=normCode(code);
-  await fetchTWSEAll();
-  // Try ETF data first, then regular stocks
-  var sources=[twseCache.etfData,twseCache.data];
-  for(var si=0;si<sources.length;si++){
-    var src=sources[si];
-    if(!src)continue;
-    var item=src[c];
-    if(!item)continue;
-    // ClosingPrice field (may be "--" before first trade)
-    var raw=String(item.ClosingPrice||item.LastBestBidPrice||'').replace(/,/g,'').replace(/-+/g,'');
-    var price=parseFloat(raw);
-    if(!isNaN(price)&&price>0){
-      var prevRaw=String(item.PreviousClose||item.LastBestAskPrice||'').replace(/,/g,'').replace(/-+/g,'');
-      var prev=parseFloat(prevRaw);
-      var chg=(!isNaN(prev)&&prev>0)?parseFloat(((price-prev)/prev*100).toFixed(2)):0;
-      return{price:price,chg:chg,pd:null,rt:true};
+  var variants=codeVariants(code);
+  var prefixes=['tse','otc'];
+  for(var vi=0;vi<variants.length;vi++){
+    for(var pi=0;pi<prefixes.length;pi++){
+      var res=await misFetch(variants[vi],prefixes[pi]);
+      if(res)return res;
     }
   }
   return null;
 }
 
-// Fetch closing price from TWSE monthly report (fallback)
+// ── 收盤報價：TWSE 月報 API (收盤後/假日) ─────────────────────
 async function fetchClose(code){
   var c=normCode(code);
   var now=new Date();
@@ -826,17 +825,44 @@ async function fetchClose(code){
         }
       }
     }catch(e){}
+    // 若上市查不到，試 5 碼 ETF 格式
+    try{
+      var cv=codeVariants(code);
+      for(var cvi=0;cvi<cv.length;cvi++){
+        if(cv[cvi]===c)continue;
+        var d3=new Date(now.getFullYear(),now.getMonth()-mo,1);
+        var ym2=d3.getFullYear()+''+String(d3.getMonth()+1).padStart(2,'0')+'01';
+        var url2='https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+ym2+'&stockNo='+cv[cvi]+'&_='+Date.now();
+        var r2=await fetch(url2);
+        var data2=await r2.json();
+        if(data2.data&&data2.data.length>0){
+          for(var ri2=data2.data.length-1;ri2>=0;ri2--){
+            var row2=data2.data[ri2];
+            var raw2=String(row2[6]||'').replace(/,/g,'').replace(/-+/g,'');
+            var price2=parseFloat(raw2);
+            if(!isNaN(price2)&&price2>0){
+              var prevRaw2=ri2>0?String(data2.data[ri2-1][6]||'').replace(/,/g,'').replace(/-+/g,''):'';
+              var prev2=parseFloat(prevRaw2);
+              var chg2=(!isNaN(prev2)&&prev2>0)?parseFloat(((price2-prev2)/prev2*100).toFixed(2)):0;
+              var parts2=String(row2[0]).split('/');
+              var pd2=parts2.length===3?parts2[1]+'/'+parts2[2]:String(row2[0]);
+              return{price:price2,chg:chg2,pd:pd2,rt:false};
+            }
+          }
+        }
+      }
+    }catch(e){}
   }
   return null;
 }
 
+// 盤中用即時；盤後/假日用收盤
 async function fetchPrice(code){
-  // During market hours: try realtime first
   if(twMktOpen()){
     var rt=await fetchRealtime(code);
     if(rt)return rt;
+    // 即時失敗時 fallback 到收盤（顯示最近收盤價）
   }
-  // After hours or realtime failed: use monthly close data
   return await fetchClose(code);
 }
 var rtInterval=null,fxInterval=null;
