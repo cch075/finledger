@@ -808,13 +808,13 @@ function setupRtInterval(){
   if(twMktOpen()){
     if(!rtInterval){
       rtInterval=setInterval(async function(){
-        if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;rStkTbl();return;}
+        if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;rStkTbl();rDashStk();return;}
         var ok=0;
         for(var i=0;i<D.stocks.length;i++){
           var res=await fetchRealtime(D.stocks[i].code);
-          if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}
+          if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=null;ok++;}
         }
-        if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rStkTbl();rKpis();rSnap();}
+        if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rStkTbl();rDashStk();rKpis();rSnap();}
       },10000);
     }
   }else{
@@ -832,7 +832,7 @@ function setupRtInterval(){
 async function doRefresh(){
   var icon=document.getElementById('ri');icon.classList.add('spn');var ok=0;
   await fetchFx();
-  for(var i=0;i<D.stocks.length;i++){var res=await fetchPrice(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}}
+  for(var i=0;i<D.stocks.length;i++){var res=await fetchPrice(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=twMktOpen()?null:res.pd;ok++;}}
   D.lr=new Date().toLocaleTimeString('zh-TW');sv();icon.classList.remove('spn');
   rSnap();
   if(curP===0)rAssetLine();
