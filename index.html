@@ -735,11 +735,12 @@ function twMktOpen(){
 function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
 
 // ══ 股票報價 ══════════════════════════════════════════════════════
-//
-// 盤中即時：Yahoo Finance v7 quote（批次抓全部，一次請求，有 CORS）
-// 盤後/假日：TWSE STOCK_DAY 月報（逐支抓，有收盤日期）
+// 來源優先順序（盤中）：
+//   1. Yahoo Finance query2（有 CORS，真正即時）
+//   2. TWSE openapi STOCK_DAY_ALL（有 CORS，每幾分鐘更新）
+//   3. TWSE STOCK_DAY 月報（有 CORS，收盤後 fallback）
 
-// 代碼正規化
+// 正規化代碼：確保代碼格式正確
 function normCode(code){
   var s=String(code).trim();
   if(s.length===2)return'00'+s;
@@ -751,57 +752,103 @@ function codeVariants(code){
   var out=[s];
   var stripped=s.replace(/^0+/,'')||s;
   if(stripped!==s)out.push(stripped);
-  if(s.length===2)out.push('00'+s);
+  if(s.length===2){out.push('00'+s);}
   if(s.length===3&&!/^0/.test(s)){out.push('0'+s);out.push('00'+s);}
-  if(stripped.length===2)out.push('00'+stripped);
+  if(stripped.length===2){out.push('00'+stripped);}
   if(stripped.length===3&&!/^0/.test(stripped)){out.push('0'+stripped);out.push('00'+stripped);}
   var seen={},res=[];
   out.forEach(function(c){if(c&&!seen[c]){seen[c]=1;res.push(c);}});
   return res;
 }
 
-// ── 批次報價（Yahoo v7/quote：盤中=即時，盤後=收盤，一次請求抓全部）──
-async function fetchAllRealtime(stocks){
-  if(!stocks||!stocks.length)return null;
-  var symbols=[];
-  stocks.forEach(function(s){
-    var c=normCode(s.code);
-    symbols.push(c+'.TW');
-    if(s.type==='etf'||c.length>=5)symbols.push(c+'.TWO');
-  });
-  // deduplicate
-  var seen={},uniq=[];
-  symbols.forEach(function(s){if(!seen[s]){seen[s]=1;uniq.push(s);}});
-  try{
-    var ctrl=new AbortController();
-    var tid=setTimeout(function(){ctrl.abort();},9000);
-    var url='https://query2.finance.yahoo.com/v7/finance/quote?formatted=false&lang=zh-TW&symbols='+encodeURIComponent(uniq.join(','));
-    var r=await fetch(url,{signal:ctrl.signal});
-    clearTimeout(tid);
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    var d=await r.json();
-    var results=d&&d.quoteResponse&&d.quoteResponse.result;
-    if(!results||!results.length)throw new Error('empty');
-    var map={};
-    results.forEach(function(item){
-      var p=item.regularMarketPrice;
-      if(!p||p<=0)return;
-      var prev=item.regularMarketPreviousClose||p;
-      var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
-      // Get last trade date for after-hours display
-      var pd=null;
-      if(item.regularMarketTime){
-        var dt=new Date(item.regularMarketTime*1000);
-        pd=(dt.getMonth()+1).toString().padStart(2,'0')+'/'+dt.getDate().toString().padStart(2,'0');
-      }
-      var base=item.symbol.replace(/\.(TW|TWO)$/,'');
-      if(!map[base])map[base]={price:p,chg:chg,pd:pd,rt:true};
-    });
-    return Object.keys(map).length>0?map:null;
-  }catch(e){return null;}
+// Yahoo Finance query2 - 真正即時報價（盤中 tick-by-tick）
+async function yahooFetch(code){
+  var variants=codeVariants(code);
+  var suffixes=['.TW','.TWO'];
+  for(var vi=0;vi<variants.length;vi++){
+    for(var si=0;si<suffixes.length;si++){
+      var ctrl=new AbortController();
+      var tid=setTimeout(function(){ctrl.abort();},7000);
+      try{
+        var url='https://query2.finance.yahoo.com/v8/finance/chart/'+variants[vi]+suffixes[si]+'?interval=1d&range=5d&events=div%2Csplit';
+        var r=await fetch(url,{signal:ctrl.signal});
+        clearTimeout(tid);
+        if(!r.ok)continue;
+        var d=await r.json();
+        if(!d||!d.chart||d.chart.error)continue;
+        var result=d.chart.result&&d.chart.result[0];
+        if(!result)continue;
+        var meta=result.meta;
+        if(!meta)continue;
+        var p=meta.regularMarketPrice;
+        if(!p||p<=0)continue;
+        var prev=meta.chartPreviousClose||meta.previousClose||p;
+        var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
+        return{price:p,chg:chg,pd:null,rt:true};
+      }catch(e){clearTimeout(tid);}
+    }
+  }
+  return null;
 }
 
-// ── 個別收盤報價（月報，收盤後 fallback）─────────────────────────
+// TWSE openapi STOCK_DAY_ALL - 每幾分鐘更新（盤中備用）
+var twseAllCache={data:null,etfData:null,ts:0};
+async function fetchTWSEAll(){
+  var now=Date.now();
+  if(twseAllCache.ts>0&&now-twseAllCache.ts<30000)return; // cache 30s
+  twseAllCache.ts=now;
+  var ctrl=new AbortController();
+  var tid=setTimeout(function(){ctrl.abort();},8000);
+  try{
+    var r=await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(r.ok){
+      var d=await r.json();
+      if(Array.isArray(d)&&d.length>0){
+        twseAllCache.data={};
+        d.forEach(function(item){if(item.Code)twseAllCache.data[item.Code]=item;});
+      }
+    }
+  }catch(e){clearTimeout(tid);}
+  var ctrl2=new AbortController();
+  var tid2=setTimeout(function(){ctrl2.abort();},8000);
+  try{
+    var r2=await fetch('https://openapi.twse.com.tw/v1/ETF/STOCK_DAY_ALL',{signal:ctrl2.signal});
+    clearTimeout(tid2);
+    if(r2.ok){
+      var d2=await r2.json();
+      if(Array.isArray(d2)&&d2.length>0){
+        twseAllCache.etfData={};
+        d2.forEach(function(item){if(item.Code)twseAllCache.etfData[item.Code]=item;});
+      }
+    }
+  }catch(e){clearTimeout(tid2);}
+}
+async function twseAllFetch(code){
+  await fetchTWSEAll();
+  var variants=codeVariants(code);
+  var srcs=[twseAllCache.etfData,twseAllCache.data];
+  for(var si=0;si<srcs.length;si++){
+    var src=srcs[si];if(!src)continue;
+    for(var vi=0;vi<variants.length;vi++){
+      var item=src[variants[vi]];
+      if(!item)continue;
+      var raw=String(item.ClosingPrice||'').replace(/,/g,'').replace(/-+/g,'');
+      var price=parseFloat(raw);
+      if(!isNaN(price)&&price>0){
+        var prevRaw=String(item.Change||item.PreviousClose||'').replace(/[+\-,]/g,'');
+        var chgRaw=String(item.Change||'').replace(/,/g,'');
+        var chgVal=parseFloat(chgRaw);
+        var prevPrice=(!isNaN(chgVal)&&price-chgVal>0)?(price-chgVal):price;
+        var chg=prevPrice>0?parseFloat(((price-prevPrice)/prevPrice*100).toFixed(2)):0;
+        return{price:price,chg:chg,pd:null,rt:true};
+      }
+    }
+  }
+  return null;
+}
+
+// TWSE STOCK_DAY 月報 - 收盤後 fallback（有正確日期）
 async function fetchClose(code){
   var variants=codeVariants(code);
   var now=new Date();
@@ -834,8 +881,17 @@ async function fetchClose(code){
   return null;
 }
 
-// fetchPrice：個別 fallback 用（interval 10s 更新時）
+// 主要入口：盤中優先即時，盤後用月報
 async function fetchPrice(code){
+  if(twMktOpen()){
+    // 1. Yahoo Finance（真正即時）
+    var r1=await yahooFetch(code);
+    if(r1)return r1;
+    // 2. TWSE openapi（每幾分鐘更新）
+    var r2=await twseAllFetch(code);
+    if(r2)return r2;
+  }
+  // 3. 月報 fallback（收盤後/假日）
   return await fetchClose(code);
 }
 var rtInterval=null,fxInterval=null;
@@ -846,19 +902,11 @@ function setupRtInterval(){
     if(!rtInterval){
       rtInterval=setInterval(async function(){
         if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;rStkTbl();rDashStk();return;}
-        var rtMap=await fetchAllRealtime(D.stocks);
-        if(!rtMap)return;
         var ok=0;
-        D.stocks.forEach(function(s){
-          var variants=codeVariants(s.code);
-          for(var vi=0;vi<variants.length;vi++){
-            if(rtMap[variants[vi]]){
-              s.price=rtMap[variants[vi]].price;
-              s.chg=rtMap[variants[vi]].chg;
-              s.pd=null;ok++;break;
-            }
-          }
-        });
+        for(var i=0;i<D.stocks.length;i++){
+          var res=await fetchRealtime(D.stocks[i].code);
+          if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=null;ok++;}
+        }
         if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rStkTbl();rDashStk();rKpis();rSnap();}
       },10000);
     }
@@ -877,37 +925,15 @@ function setupRtInterval(){
 async function doRefresh(){
   var icon=document.getElementById('ri');icon.classList.add('spn');var ok=0;
   await fetchFx();
-  var rtOk=0;
-  // Step 1: batch realtime (盤中) OR batch close via Yahoo (any time)
-  var rtMap=await fetchAllRealtime(D.stocks);
-  if(rtMap){
-    D.stocks.forEach(function(s){
-      var variants=codeVariants(s.code);
-      for(var vi=0;vi<variants.length;vi++){
-        if(rtMap[variants[vi]]){
-          s.price=rtMap[variants[vi]].price;
-          s.chg=rtMap[variants[vi]].chg;
-          s.pd=twMktOpen()?null:rtMap[variants[vi]].pd;
-          rtOk++;break;
-        }
-      }
-    });
-  }
-  // Step 2: for stocks still missing price, use TWSE monthly report
-  for(var i=0;i<D.stocks.length;i++){
-    if(!D.stocks[i].price){
-      var res=await fetchClose(D.stocks[i].code);
-      if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}
-    }else{ok++;}
-  }
+  for(var i=0;i<D.stocks.length;i++){var res=await fetchPrice(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.rt?null:res.pd;ok++;}}
   D.lr=new Date().toLocaleTimeString('zh-TW');sv();icon.classList.remove('spn');
   rSnap();
   if(curP===0)rAssetLine();
   var lrt=document.getElementById('lrt');if(lrt)lrt.textContent=D.lr;
-  var isRt=twMktOpen()&&rtOk>0;
-  var statusMsg=isRt?('即時報價 · 已更新'+rtOk+'支'):(ok>0?'收盤報價 · 已更新'+ok+'支':'目前無法取得報價');
-  toast(statusMsg,ok>0||rtOk>0?'t':'g');
+  var statusMsg=ok>0?(twMktOpen()?'即時報價 · 已更新'+ok+'支':'收盤報價 · 已更新'+ok+'支'):'目前無法取得報價';
+  toast(statusMsg,ok>0?'t':'g');
   rAll();rFxBar();
+  // Set up / clear 10-second auto-refresh based on market hours
   setupRtInterval();
 }
 
