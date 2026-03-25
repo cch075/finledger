@@ -756,24 +756,7 @@ function codeVariants(code){
   return res;
 }
 
-// ── Yahoo Finance crumb（2024年後必須） ──────────────────────────
-var _ycrumb='',_ycrumbTs=0;
-async function getYahooCrumb(){
-  var now=Date.now();
-  if(_ycrumb&&now-_ycrumbTs<3600000)return _ycrumb; // cache 1hr
-  try{
-    var r=await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb',{credentials:'include'});
-    if(r.ok){
-      var c=await r.text();
-      if(c&&c.length>0&&c.length<100&&!c.includes('<')){
-        _ycrumb=c.trim();_ycrumbTs=now;return _ycrumb;
-      }
-    }
-  }catch(e){}
-  return '';
-}
-
-// ── 批次報價（Yahoo Finance v7/quote） ──────────────────────────
+// ── 批次報價（/api/quote Vercel proxy → 伺服器端抓 Yahoo，無 CORS 問題） ──
 async function fetchAllRealtime(stocks){
   if(!stocks||!stocks.length)return null;
   var symbols=[];
@@ -784,41 +767,33 @@ async function fetchAllRealtime(stocks){
   });
   var seen={},uniq=[];
   symbols.forEach(function(s){if(!seen[s]){seen[s]=1;uniq.push(s);}});
-  var symStr=encodeURIComponent(uniq.join(','));
-  // Try both with crumb and without, try both query1 and query2
-  var crumb=await getYahooCrumb();
-  var attempts=[
-    'https://query2.finance.yahoo.com/v7/finance/quote?formatted=false&lang=zh-TW&symbols='+symStr+(crumb?'&crumb='+encodeURIComponent(crumb):''),
-    'https://query1.finance.yahoo.com/v7/finance/quote?formatted=false&lang=zh-TW&symbols='+symStr+(crumb?'&crumb='+encodeURIComponent(crumb):''),
-    'https://query2.finance.yahoo.com/v7/finance/quote?formatted=false&lang=zh-TW&symbols='+symStr,
-  ];
-  for(var ai=0;ai<attempts.length;ai++){
-    try{
-      var ctrl=new AbortController();
-      var tid=setTimeout(function(){ctrl.abort();},8000);
-      var r=await fetch(attempts[ai],{signal:ctrl.signal,credentials:'include'});
-      clearTimeout(tid);
-      if(!r.ok)continue;
-      var d=await r.json();
-      var results=d&&d.quoteResponse&&d.quoteResponse.result;
-      if(!results||!results.length)continue;
-      var map={};
-      results.forEach(function(item){
-        var p=item.regularMarketPrice;
-        if(!p||p<=0)return;
-        var prev=item.regularMarketPreviousClose||p;
-        var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
-        var pd=null;
-        if(item.regularMarketTime){
-          var dt=new Date(item.regularMarketTime*1000);
-          pd=(dt.getMonth()+1).toString().padStart(2,'0')+'/'+dt.getDate().toString().padStart(2,'0');
-        }
-        var base=item.symbol.replace(/\.(TW|TWO)$/,'');
-        if(!map[base])map[base]={price:p,chg:chg,pd:pd,rt:true};
-      });
-      if(Object.keys(map).length>0)return map;
-    }catch(e){}
-  }
+  var symStr=uniq.join(',');
+  try{
+    var ctrl=new AbortController();
+    var tid=setTimeout(function(){ctrl.abort();},10000);
+    // 呼叫自己 Vercel 上的 /api/quote（server-side proxy，沒有 CORS 問題）
+    var r=await fetch('/api/quote?symbols='+encodeURIComponent(symStr),{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok)throw new Error('proxy '+r.status);
+    var d=await r.json();
+    var results=d&&d.quoteResponse&&d.quoteResponse.result;
+    if(!results||!results.length)throw new Error('empty');
+    var map={};
+    results.forEach(function(item){
+      var p=item.regularMarketPrice;
+      if(!p||p<=0)return;
+      var prev=item.regularMarketPreviousClose||p;
+      var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
+      var pd=null;
+      if(item.regularMarketTime){
+        var dt=new Date(item.regularMarketTime*1000);
+        pd=(dt.getMonth()+1).toString().padStart(2,'0')+'/'+dt.getDate().toString().padStart(2,'0');
+      }
+      var base=item.symbol.replace(/\.(TW|TWO)$/,'');
+      if(!map[base])map[base]={price:p,chg:chg,pd:pd,rt:true};
+    });
+    if(Object.keys(map).length>0)return map;
+  }catch(e){}
   return null;
 }
 
