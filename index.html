@@ -898,9 +898,8 @@ async function doRefresh(){
   if(curP===0)rAssetLine();
   var lrt=document.getElementById('lrt');if(lrt)lrt.textContent=D.lr;
   var isRt=twMktOpen()&&rtOk>0;
-  var yahooStatus=rtOk>0?'OK':'失敗';
-  var statusMsg=isRt?('即時報價 · '+rtOk+'支'):(ok>0?('收盤報價 · '+ok+'支 (Yahoo:'+yahooStatus+')'):'目前無法取得報價');
-  toast(statusMsg,ok>0||rtOk>0?'t':'r');
+  var statusMsg=isRt?('即時報價 · 已更新'+rtOk+'支'):(ok>0?('收盤報價 · 已更新'+ok+'支'):'目前無法取得報價');
+  toast(statusMsg,ok>0||rtOk>0?'t':'g');
   rAll();rFxBar();
   setupRtInterval();
 }
