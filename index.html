@@ -234,14 +234,14 @@ html,body{height:100%;background:var(--n0);color:var(--t1);font-family:var(--fb)
 
 <div class="ov" id="mInc"><div class="mo"><button class="mc" onclick="cMo('mInc')">✕</button><h2 id="mitt">記錄收入</h2><div class="fi"><label>類別</label><select id="ic0"><option value="salary">💼 薪資</option><option value="bonus">🎁 獎金/Bonus</option><option value="stock_profit">📈 股票獲利</option><option value="dividend">💰 股息</option><option value="interest">🏦 利息</option><option value="rental">🏠 租金</option><option value="freelance">💻 接案/副業</option><option value="other_income">📌 其他</option></select></div><div class="fr"><div class="fi"><label>幣別</label><select id="ic1" onchange="uIncHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option></select></div><div class="fi"><label id="iclb">金額(TWD)</label><input id="ic2" type="number" placeholder="50000" oninput="uIncHint()"/></div></div><div class="hb hbt" id="ichint" style="display:none"></div><div class="fi"><label>日期</label><input id="ic3" type="date"/></div><div class="fi"><label>說明</label><input id="ic4" type="text" placeholder="例：3月薪資"/></div><div class="fi"><label>存入銀行帳戶(選填)</label><select id="ic5" onchange="uDepHint()"><option value="">— 不存入 —</option></select></div><div id="idepf" style="display:none"><div class="fi"><label>存入金額(NT$)</label><input id="ic6" type="number" placeholder="0" min="0" oninput="uDepWarn()"/></div><div class="hb hbt" id="iphint"></div><div class="hb hbr" id="ipwarn" style="display:none;margin-top:4px"></div></div><div class="mf"><button class="btn" onclick="cMo('mInc')">取消</button><button class="btn bpr" id="mits" onclick="sbInc()">記錄</button></div></div></div>
 
-<div class="ov" id="mExp"><div class="mo"><button class="mc" onclick="cMo('mExp')">✕</button><h2 id="mett">記錄支出</h2><div class="fi"><label>類別</label><select id="ec0"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="gas">⛽ 油錢</option><option value="gift">🎀 禮物</option><option value="travel">✈️ 旅遊</option><option value="daily">🧴 生活用品</option><option value="renovation">🔨 桃園裝修費用</option><option value="other">📌 其他</option></select></div><div class="fr"><div class="fi"><label>幣別</label><select id="ec4" onchange="uExpHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option><option value="JPY">JPY 日幣</option><option value="EUR">EUR 歐元</option><option value="COP">COP 披索</option></select></div><div class="fi"><label id="eclb">金額(TWD)</label><input id="ec1" type="number" placeholder="350" oninput="uExpHint()"/></div></div><div class="hb hbt" id="echint" style="display:none"></div><div class="fr"><div class="fi"><label>日期</label><input id="ec2" type="date"/></div><div class="fi"><label>說明</label><input id="ec3" type="text" placeholder="例：午餐"/></div></div><div class="mf"><button class="btn" onclick="cMo('mExp')">取消</button><button class="btn bpr" id="mets" onclick="sbExp()">記錄</button></div></div></div>
+<div class="ov" id="mExp"><div class="mo"><button class="mc" onclick="cMo('mExp')">✕</button><h2 id="mett">記錄支出</h2><div class="fi"><label>類別</label><select id="ec0"><option value="food">🍜 飲食</option><option value="groceries">🛒 買菜</option><option value="rent">🏠 房租</option><option value="transport">🚇 交通</option><option value="entertainment">🎬 娛樂</option><option value="health">💊 醫療健康</option><option value="shopping">🛍 購物</option><option value="utilities">💡 水電瓦斯</option><option value="education">📚 教育進修</option><option value="insurance">🛡 保險</option><option value="gas">⛽ 油錢</option><option value="gift">🎀 禮物</option><option value="travel">✈️ 旅遊</option><option value="daily">🧴 生活用品</option><option value="renovation">🔨 桃園裝修費用</option><option value="sports">🏃 運動</option><option value="telecom">📱 網路手機資費</option><option value="other">📌 其他</option></select></div><div class="fr"><div class="fi"><label>幣別</label><select id="ec4" onchange="uExpHint()"><option value="TWD">TWD 台幣</option><option value="USD">USD 美金</option><option value="JPY">JPY 日幣</option><option value="EUR">EUR 歐元</option><option value="COP">COP 披索</option></select></div><div class="fi"><label id="eclb">金額(TWD)</label><input id="ec1" type="number" placeholder="350" oninput="uExpHint()"/></div></div><div class="hb hbt" id="echint" style="display:none"></div><div class="fr"><div class="fi"><label>日期</label><input id="ec2" type="date"/></div><div class="fi"><label>說明</label><input id="ec3" type="text" placeholder="例：午餐"/></div></div><div class="mf"><button class="btn" onclick="cMo('mExp')">取消</button><button class="btn bpr" id="mets" onclick="sbExp()">記錄</button></div></div></div>
 
 <div class="bnr" id="bnr"><div style="display:flex;align-items:center;gap:9px"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#00C9A7" stroke-width="1.3"/><line x1="7.5" y1="4.5" x2="7.5" y2="8.5" stroke="#00C9A7" stroke-width="1.3" stroke-linecap="round"/><circle cx="7.5" cy="10.5" r=".7" fill="#00C9A7"/></svg><span style="font-size:12px;color:var(--t2)" id="bnrmsg">建議備份</span></div><div style="display:flex;gap:7px"><button class="btn bsm" style="border-color:var(--tl);color:var(--tl)" onclick="pushGs();hideBnr()">同步Sheet</button><button class="btn bsm" onclick="expJson();hideBnr()">匯出JSON</button><button class="btn bsm" onclick="hideBnr()" style="color:var(--t3)">稍後</button></div></div>
 
 <div class="tst" id="tst"><div class="tsd" id="tsd"></div><span id="tsm"></span></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-var EC={food:{l:'飲食',i:'🍜',c:'#F05252'},groceries:{l:'買菜',i:'🛒',c:'#FF8C42'},rent:{l:'房租',i:'🏠',c:'#4DA6FF'},transport:{l:'交通',i:'🚇',c:'#10B981'},entertainment:{l:'娛樂',i:'🎬',c:'#C9A84C'},health:{l:'醫療健康',i:'💊',c:'#D4537E'},shopping:{l:'購物',i:'🛍',c:'#7F77DD'},utilities:{l:'水電瓦斯',i:'💡',c:'#EF9F27'},education:{l:'教育進修',i:'📚',c:'#5DCAA5'},insurance:{l:'保險',i:'🛡',c:'#8FA8C0'},gas:{l:'油錢',i:'⛽',c:'#F97316'},gift:{l:'禮物',i:'🎀',c:'#EC4899'},travel:{l:'旅遊',i:'✈️',c:'#6366F1'},daily:{l:'生活用品',i:'🧴',c:'#14B8A6'},renovation:{l:'桃園裝修',i:'🔨',c:'#A16207'},other:{l:'其他',i:'📌',c:'#4A6A85'}};
+var EC={food:{l:'飲食',i:'🍜',c:'#F05252'},groceries:{l:'買菜',i:'🛒',c:'#FF8C42'},rent:{l:'房租',i:'🏠',c:'#4DA6FF'},transport:{l:'交通',i:'🚇',c:'#10B981'},entertainment:{l:'娛樂',i:'🎬',c:'#C9A84C'},health:{l:'醫療健康',i:'💊',c:'#D4537E'},shopping:{l:'購物',i:'🛍',c:'#7F77DD'},utilities:{l:'水電瓦斯',i:'💡',c:'#EF9F27'},education:{l:'教育進修',i:'📚',c:'#5DCAA5'},insurance:{l:'保險',i:'🛡',c:'#8FA8C0'},gas:{l:'油錢',i:'⛽',c:'#F97316'},gift:{l:'禮物',i:'🎀',c:'#EC4899'},travel:{l:'旅遊',i:'✈️',c:'#6366F1'},daily:{l:'生活用品',i:'🧴',c:'#14B8A6'},renovation:{l:'桃園裝修',i:'🔨',c:'#A16207'},sports:{l:'運動',i:'🏃',c:'#0EA5E9'},telecom:{l:'網路手機資費',i:'📱',c:'#8B5CF6'},other:{l:'其他',i:'📌',c:'#4A6A85'}};
 var IC={salary:{l:'薪資',i:'💼',c:'#10B981'},bonus:{l:'獎金/Bonus',i:'🎁',c:'#00C9A7'},stock_profit:{l:'股票獲利',i:'📈',c:'#4DA6FF'},dividend:{l:'股息',i:'💰',c:'#C9A84C'},interest:{l:'利息',i:'🏦',c:'#A78BFA'},rental:{l:'租金',i:'🏠',c:'#5DCAA5'},freelance:{l:'接案/副業',i:'💻',c:'#F05252'},other_income:{l:'其他',i:'📌',c:'#4A6A85'}};
 var BC=['#00C9A7','#4DA6FF','#C9A84C','#D4537E','#7F77DD','#10B981','#F05252','#A78BFA'];
 
@@ -735,12 +735,7 @@ function twMktOpen(){
 function twWeekday(){var d=new Date().getDay();return d!==0&&d!==6;}
 
 // ══ 股票報價 ══════════════════════════════════════════════════════
-// 來源優先順序（盤中）：
-//   1. Yahoo Finance query2（有 CORS，真正即時）
-//   2. TWSE openapi STOCK_DAY_ALL（有 CORS，每幾分鐘更新）
-//   3. TWSE STOCK_DAY 月報（有 CORS，收盤後 fallback）
-
-// 正規化代碼：確保代碼格式正確
+// 代碼正規化
 function normCode(code){
   var s=String(code).trim();
   if(s.length===2)return'00'+s;
@@ -752,103 +747,57 @@ function codeVariants(code){
   var out=[s];
   var stripped=s.replace(/^0+/,'')||s;
   if(stripped!==s)out.push(stripped);
-  if(s.length===2){out.push('00'+s);}
+  if(s.length===2)out.push('00'+s);
   if(s.length===3&&!/^0/.test(s)){out.push('0'+s);out.push('00'+s);}
-  if(stripped.length===2){out.push('00'+stripped);}
+  if(stripped.length===2)out.push('00'+stripped);
   if(stripped.length===3&&!/^0/.test(stripped)){out.push('0'+stripped);out.push('00'+stripped);}
   var seen={},res=[];
   out.forEach(function(c){if(c&&!seen[c]){seen[c]=1;res.push(c);}});
   return res;
 }
 
-// Yahoo Finance query2 - 真正即時報價（盤中 tick-by-tick）
-async function yahooFetch(code){
-  var variants=codeVariants(code);
-  var suffixes=['.TW','.TWO'];
-  for(var vi=0;vi<variants.length;vi++){
-    for(var si=0;si<suffixes.length;si++){
-      var ctrl=new AbortController();
-      var tid=setTimeout(function(){ctrl.abort();},7000);
-      try{
-        var url='https://query2.finance.yahoo.com/v8/finance/chart/'+variants[vi]+suffixes[si]+'?interval=1d&range=5d&events=div%2Csplit';
-        var r=await fetch(url,{signal:ctrl.signal});
-        clearTimeout(tid);
-        if(!r.ok)continue;
-        var d=await r.json();
-        if(!d||!d.chart||d.chart.error)continue;
-        var result=d.chart.result&&d.chart.result[0];
-        if(!result)continue;
-        var meta=result.meta;
-        if(!meta)continue;
-        var p=meta.regularMarketPrice;
-        if(!p||p<=0)continue;
-        var prev=meta.chartPreviousClose||meta.previousClose||p;
-        var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
-        return{price:p,chg:chg,pd:null,rt:true};
-      }catch(e){clearTimeout(tid);}
-    }
-  }
-  return null;
-}
-
-// TWSE openapi STOCK_DAY_ALL - 每幾分鐘更新（盤中備用）
-var twseAllCache={data:null,etfData:null,ts:0};
-async function fetchTWSEAll(){
-  var now=Date.now();
-  if(twseAllCache.ts>0&&now-twseAllCache.ts<30000)return; // cache 30s
-  twseAllCache.ts=now;
-  var ctrl=new AbortController();
-  var tid=setTimeout(function(){ctrl.abort();},8000);
+// ── 批次報價（/api/quote Vercel proxy → 伺服器端抓 Yahoo，無 CORS 問題） ──
+async function fetchAllRealtime(stocks){
+  if(!stocks||!stocks.length)return null;
+  var symbols=[];
+  stocks.forEach(function(s){
+    var c=normCode(s.code);
+    symbols.push(c+'.TW');
+    if(s.type==='etf'||c.length>=5)symbols.push(c+'.TWO');
+  });
+  var seen={},uniq=[];
+  symbols.forEach(function(s){if(!seen[s]){seen[s]=1;uniq.push(s);}});
+  var symStr=uniq.join(',');
   try{
-    var r=await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',{signal:ctrl.signal});
+    var ctrl=new AbortController();
+    var tid=setTimeout(function(){ctrl.abort();},10000);
+    // 呼叫自己 Vercel 上的 /api/quote（server-side proxy，沒有 CORS 問題）
+    var r=await fetch('/api/quote?symbols='+encodeURIComponent(symStr),{signal:ctrl.signal});
     clearTimeout(tid);
-    if(r.ok){
-      var d=await r.json();
-      if(Array.isArray(d)&&d.length>0){
-        twseAllCache.data={};
-        d.forEach(function(item){if(item.Code)twseAllCache.data[item.Code]=item;});
+    if(!r.ok)throw new Error('proxy '+r.status);
+    var d=await r.json();
+    var results=d&&d.quoteResponse&&d.quoteResponse.result;
+    if(!results||!results.length)throw new Error('empty');
+    var map={};
+    results.forEach(function(item){
+      var p=item.regularMarketPrice;
+      if(!p||p<=0)return;
+      var prev=item.regularMarketPreviousClose||p;
+      var chg=prev>0?parseFloat(((p-prev)/prev*100).toFixed(2)):0;
+      var pd=null;
+      if(item.regularMarketTime){
+        var dt=new Date(item.regularMarketTime*1000);
+        pd=(dt.getMonth()+1).toString().padStart(2,'0')+'/'+dt.getDate().toString().padStart(2,'0');
       }
-    }
-  }catch(e){clearTimeout(tid);}
-  var ctrl2=new AbortController();
-  var tid2=setTimeout(function(){ctrl2.abort();},8000);
-  try{
-    var r2=await fetch('https://openapi.twse.com.tw/v1/ETF/STOCK_DAY_ALL',{signal:ctrl2.signal});
-    clearTimeout(tid2);
-    if(r2.ok){
-      var d2=await r2.json();
-      if(Array.isArray(d2)&&d2.length>0){
-        twseAllCache.etfData={};
-        d2.forEach(function(item){if(item.Code)twseAllCache.etfData[item.Code]=item;});
-      }
-    }
-  }catch(e){clearTimeout(tid2);}
-}
-async function twseAllFetch(code){
-  await fetchTWSEAll();
-  var variants=codeVariants(code);
-  var srcs=[twseAllCache.etfData,twseAllCache.data];
-  for(var si=0;si<srcs.length;si++){
-    var src=srcs[si];if(!src)continue;
-    for(var vi=0;vi<variants.length;vi++){
-      var item=src[variants[vi]];
-      if(!item)continue;
-      var raw=String(item.ClosingPrice||'').replace(/,/g,'').replace(/-+/g,'');
-      var price=parseFloat(raw);
-      if(!isNaN(price)&&price>0){
-        var prevRaw=String(item.Change||item.PreviousClose||'').replace(/[+\-,]/g,'');
-        var chgRaw=String(item.Change||'').replace(/,/g,'');
-        var chgVal=parseFloat(chgRaw);
-        var prevPrice=(!isNaN(chgVal)&&price-chgVal>0)?(price-chgVal):price;
-        var chg=prevPrice>0?parseFloat(((price-prevPrice)/prevPrice*100).toFixed(2)):0;
-        return{price:price,chg:chg,pd:null,rt:true};
-      }
-    }
-  }
+      var base=item.symbol.replace(/\.(TW|TWO)$/,'');
+      if(!map[base])map[base]={price:p,chg:chg,pd:pd,rt:true};
+    });
+    if(Object.keys(map).length>0)return map;
+  }catch(e){}
   return null;
 }
 
-// TWSE STOCK_DAY 月報 - 收盤後 fallback（有正確日期）
+// ── 個別收盤報價（TWSE月報，有日期） ───────────────────────────
 async function fetchClose(code){
   var variants=codeVariants(code);
   var now=new Date();
@@ -881,19 +830,7 @@ async function fetchClose(code){
   return null;
 }
 
-// 主要入口：盤中優先即時，盤後用月報
-async function fetchPrice(code){
-  if(twMktOpen()){
-    // 1. Yahoo Finance（真正即時）
-    var r1=await yahooFetch(code);
-    if(r1)return r1;
-    // 2. TWSE openapi（每幾分鐘更新）
-    var r2=await twseAllFetch(code);
-    if(r2)return r2;
-  }
-  // 3. 月報 fallback（收盤後/假日）
-  return await fetchClose(code);
-}
+async function fetchPrice(code){return await fetchClose(code);}
 var rtInterval=null,fxInterval=null;
 
 function setupRtInterval(){
@@ -902,11 +839,19 @@ function setupRtInterval(){
     if(!rtInterval){
       rtInterval=setInterval(async function(){
         if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;rStkTbl();rDashStk();return;}
+        var rtMap=await fetchAllRealtime(D.stocks);
+        if(!rtMap)return;
         var ok=0;
-        for(var i=0;i<D.stocks.length;i++){
-          var res=await fetchRealtime(D.stocks[i].code);
-          if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=null;ok++;}
-        }
+        D.stocks.forEach(function(s){
+          var variants=codeVariants(s.code);
+          for(var vi=0;vi<variants.length;vi++){
+            if(rtMap[variants[vi]]){
+              s.price=rtMap[variants[vi]].price;
+              s.chg=rtMap[variants[vi]].chg;
+              s.pd=null;ok++;break;
+            }
+          }
+        });
         if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rStkTbl();rDashStk();rKpis();rSnap();}
       },10000);
     }
@@ -925,15 +870,38 @@ function setupRtInterval(){
 async function doRefresh(){
   var icon=document.getElementById('ri');icon.classList.add('spn');var ok=0;
   await fetchFx();
-  for(var i=0;i<D.stocks.length;i++){var res=await fetchPrice(D.stocks[i].code);if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.rt?null:res.pd;ok++;}}
+  var rtOk=0;
+  // Step 1: batch realtime (盤中) OR batch close via Yahoo (any time)
+  var rtMap=await fetchAllRealtime(D.stocks);
+  if(rtMap){
+    D.stocks.forEach(function(s){
+      var variants=codeVariants(s.code);
+      for(var vi=0;vi<variants.length;vi++){
+        if(rtMap[variants[vi]]){
+          s.price=rtMap[variants[vi]].price;
+          s.chg=rtMap[variants[vi]].chg;
+          s.pd=twMktOpen()?null:rtMap[variants[vi]].pd;
+          rtOk++;break;
+        }
+      }
+    });
+  }
+  // Step 2: for stocks still missing price, use TWSE monthly report
+  for(var i=0;i<D.stocks.length;i++){
+    if(!D.stocks[i].price){
+      var res=await fetchClose(D.stocks[i].code);
+      if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}
+    }else{ok++;}
+  }
   D.lr=new Date().toLocaleTimeString('zh-TW');sv();icon.classList.remove('spn');
   rSnap();
   if(curP===0)rAssetLine();
   var lrt=document.getElementById('lrt');if(lrt)lrt.textContent=D.lr;
-  var statusMsg=ok>0?(twMktOpen()?'即時報價 · 已更新'+ok+'支':'收盤報價 · 已更新'+ok+'支'):'目前無法取得報價';
-  toast(statusMsg,ok>0?'t':'g');
+  var isRt=twMktOpen()&&rtOk>0;
+  var yahooStatus=rtOk>0?'OK':'失敗';
+  var statusMsg=isRt?('即時報價 · '+rtOk+'支'):(ok>0?('收盤報價 · '+ok+'支 (Yahoo:'+yahooStatus+')'):'目前無法取得報價');
+  toast(statusMsg,ok>0||rtOk>0?'t':'r');
   rAll();rFxBar();
-  // Set up / clear 10-second auto-refresh based on market hours
   setupRtInterval();
 }
 
