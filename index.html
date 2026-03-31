@@ -517,8 +517,7 @@ function rStkTbl(){
   // Update market status badge
   var badge=document.getElementById('mktBadge');
   if(badge){
-    if(twMktOpen()){badge.textContent='盤中即時';badge.style.background='rgba(0,201,167,.15)';badge.style.color='var(--tl)';badge.style.display='';}
-    else if(twWeekday()){badge.textContent='已收盤';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
+    if(twWeekday()){badge.textContent='已收盤';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
     else{badge.textContent='休市';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
   }
   document.getElementById('stb').innerHTML=D.stocks.map(function(s,i){
@@ -838,22 +837,14 @@ function setupRtInterval(){
   if(twMktOpen()){
     if(!rtInterval){
       rtInterval=setInterval(async function(){
-        if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;rStkTbl();rDashStk();return;}
-        var rtMap=await fetchAllRealtime(D.stocks);
-        if(!rtMap)return;
+        if(!twMktOpen()){clearInterval(rtInterval);rtInterval=null;return;}
         var ok=0;
-        D.stocks.forEach(function(s){
-          var variants=codeVariants(s.code);
-          for(var vi=0;vi<variants.length;vi++){
-            if(rtMap[variants[vi]]){
-              s.price=rtMap[variants[vi]].price;
-              s.chg=rtMap[variants[vi]].chg;
-              s.pd=null;ok++;break;
-            }
-          }
-        });
+        for(var i=0;i<D.stocks.length;i++){
+          var res=await fetchClose(D.stocks[i].code);
+          if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}
+        }
         if(ok>0){D.lr=new Date().toLocaleTimeString('zh-TW');sv();rStkTbl();rDashStk();rKpis();rSnap();}
-      },10000);
+      },60000);
     }
   }else{
     if(rtInterval){clearInterval(rtInterval);rtInterval=null;}
@@ -870,36 +861,16 @@ function setupRtInterval(){
 async function doRefresh(){
   var icon=document.getElementById('ri');icon.classList.add('spn');var ok=0;
   await fetchFx();
-  var rtOk=0;
-  // Step 1: batch realtime (盤中) OR batch close via Yahoo (any time)
-  var rtMap=await fetchAllRealtime(D.stocks);
-  if(rtMap){
-    D.stocks.forEach(function(s){
-      var variants=codeVariants(s.code);
-      for(var vi=0;vi<variants.length;vi++){
-        if(rtMap[variants[vi]]){
-          s.price=rtMap[variants[vi]].price;
-          s.chg=rtMap[variants[vi]].chg;
-          s.pd=twMktOpen()?null:rtMap[variants[vi]].pd;
-          rtOk++;break;
-        }
-      }
-    });
-  }
-  // Step 2: for stocks still missing price, use TWSE monthly report
+  // 每次都重新抓所有股票的收盤價（不依賴舊快取）
   for(var i=0;i<D.stocks.length;i++){
-    if(!D.stocks[i].price){
-      var res=await fetchClose(D.stocks[i].code);
-      if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}
-    }else{ok++;}
+    var res=await fetchClose(D.stocks[i].code);
+    if(res){D.stocks[i].price=res.price;D.stocks[i].chg=res.chg;D.stocks[i].pd=res.pd;ok++;}
   }
   D.lr=new Date().toLocaleTimeString('zh-TW');sv();icon.classList.remove('spn');
   rSnap();
   if(curP===0)rAssetLine();
   var lrt=document.getElementById('lrt');if(lrt)lrt.textContent=D.lr;
-  var isRt=twMktOpen()&&rtOk>0;
-  var statusMsg=isRt?('即時報價 · 已更新'+rtOk+'支'):(ok>0?('收盤報價 · 已更新'+ok+'支'):'目前無法取得報價');
-  toast(statusMsg,ok>0||rtOk>0?'t':'g');
+  toast(ok>0?('已更新'+ok+'支收盤報價'):'目前無法取得報價',ok>0?'t':'g');
   rAll();rFxBar();
   setupRtInterval();
 }
