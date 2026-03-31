@@ -514,10 +514,10 @@ function rDash(){
 
 function rStkTbl(){
   document.getElementById('stv').textContent=fmt(sMV());
-  // Update market status badge
   var badge=document.getElementById('mktBadge');
   if(badge){
-    if(twWeekday()){badge.textContent='已收盤';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
+    if(twMktOpen()){badge.textContent='盤中';badge.style.background='rgba(0,201,167,.15)';badge.style.color='var(--tl)';badge.style.display='';}
+    else if(twWeekday()){badge.textContent='已收盤';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
     else{badge.textContent='休市';badge.style.background='rgba(74,106,133,.2)';badge.style.color='var(--t3)';badge.style.display='';}
   }
   document.getElementById('stb').innerHTML=D.stocks.map(function(s,i){
