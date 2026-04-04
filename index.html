@@ -345,7 +345,24 @@ function fillBkSel(selId,selectedVal){var sel=document.getElementById(selId);sel
 
 function uDepHint(){var bv=document.getElementById('ic5').value,f=document.getElementById('idepf'),h=document.getElementById('iphint');if(bv===''){f.style.display='none';return;}f.style.display='';var bi=parseInt(bv);if(!isNaN(bi)&&D.banks[bi])h.textContent='存入後累加至「'+D.banks[bi].name+'」（目前：'+fmt(t2w(D.banks[bi].amt,D.banks[bi].cur))+'）';}
 
-function uDepWarn(){var cur=document.getElementById('ic1').value,raw=parseFloat(document.getElementById('ic2').value)||0;var amt=cur==='USD'?Math.round(raw*(D.fx.USD||32.5)):raw;var dep=parseFloat(document.getElementById('ic6').value)||0;var w=document.getElementById('ipwarn');if(dep>amt&&amt>0){w.textContent='存入金額不可超過收入NT$'+Math.round(amt).toLocaleString();w.style.display='block';}else w.style.display='none';}
+function uDepWarn(){
+  var cur=document.getElementById('ic1').value;
+  var raw=parseFloat(document.getElementById('ic2').value)||0;
+  var dep=parseFloat(document.getElementById('ic6').value)||0;
+  var w=document.getElementById('ipwarn');
+  var ph=document.getElementById('iphint');
+  // 存入金額與收入同幣別，直接比較原始值
+  if(dep>raw&&raw>0){
+    w.textContent='存入金額不可超過收入 '+raw.toLocaleString()+' '+cur;
+    w.style.display='block';
+  }else w.style.display='none';
+  // 顯示換算後的台幣金額
+  var fxRate=D.fx[cur]||1;
+  if(ph&&cur!=='TWD'&&dep>0){
+    ph.textContent='≈ NT$'+Math.round(dep*fxRate).toLocaleString()+' 台幣';
+    ph.style.display='block';
+  }else if(ph)ph.style.display='none';
+}
 
 var ltimer=null;
 document.getElementById('sc0').addEventListener('input',function(){
@@ -382,7 +399,7 @@ function oIncMo(idx){
   document.getElementById('ichint').style.display='none';
   document.getElementById('ipwarn').style.display='none';
   fillBkSel('ic5',isE?D.incomes[eIncI].depBk:'');
-  if(isE){var inc=D.incomes[eIncI];document.getElementById('ic0').value=inc.cat;document.getElementById('ic1').value=inc.cur||'TWD';document.getElementById('ic2').value=inc.rawAmt||inc.amt;document.getElementById('ic3').value=inc.date;document.getElementById('ic4').value=inc.desc;document.getElementById('ic5').value=inc.depBk||'';document.getElementById('ic6').value=inc.dep||0;document.getElementById('iclb').textContent='金額('+(inc.cur||'TWD')+')';if(inc.depBk!=='')document.getElementById('idepf').style.display='';}
+  if(isE){var inc=D.incomes[eIncI];document.getElementById('ic0').value=inc.cat;document.getElementById('ic1').value=inc.cur||'TWD';document.getElementById('ic2').value=inc.rawAmt||inc.amt;document.getElementById('ic3').value=inc.date;document.getElementById('ic4').value=inc.desc;document.getElementById('ic5').value=inc.depBk||'';document.getElementById('ic6').value=inc.rawDep!==undefined?inc.rawDep:(inc.cur&&inc.cur!=='TWD'&&inc.dep>0&&D.fx[inc.cur]?parseFloat((inc.dep/(D.fx[inc.cur]||1)).toFixed(2)):inc.dep)||0;document.getElementById('iclb').textContent='金額('+(inc.cur||'TWD')+')';if(inc.depBk!=='')document.getElementById('idepf').style.display='';}
   else{document.getElementById('ic1').value='TWD';document.getElementById('ic2').value='';document.getElementById('ic3').value=localToday();document.getElementById('ic4').value='';document.getElementById('ic5').value='';document.getElementById('ic6').value='';document.getElementById('iclb').textContent='金額(TWD)';}
   uDepHint();oMo('mInc');
 }
@@ -393,12 +410,15 @@ function sbInc(){
   var date=document.getElementById('ic3').value,desc=document.getElementById('ic4').value.trim()||(IC[cat]?IC[cat].l:'');
   var bv=document.getElementById('ic5').value,bi=bv!==''?parseInt(bv):-1;
   var depRaw=parseFloat(document.getElementById('ic6').value)||0;
-  var dep=Math.min(Math.max(0,depRaw),isNaN(amt)?0:amt);
+  // 存入金額與收入同幣別，轉換為台幣存入銀行
+  var fxRate=D.fx[cur]||1;
+  var depTWD=cur==='TWD'?depRaw:Math.round(depRaw*fxRate);
+  var dep=Math.min(Math.max(0,depTWD),isNaN(amt)?0:amt);
   if(isNaN(raw)||!date){toast('請填寫金額與日期','r');return;}
   if(eIncI!==null){
     var old=D.incomes[eIncI];
     if(old.dep>0&&old.depBk!==''){var obi=parseInt(old.depBk);if(!isNaN(obi)&&D.banks[obi])D.banks[obi].amt=Math.max(0,D.banks[obi].amt-old.dep);}
-    D.incomes[eIncI]=Object.assign({},D.incomes[eIncI],{cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,depBk:bi>=0?String(bi):''});
+    D.incomes[eIncI]=Object.assign({},D.incomes[eIncI],{cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,rawDep:depRaw,depBk:bi>=0?String(bi):''});
   }else{
     D.incomes.push({id:Date.now(),cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,depBk:bi>=0?String(bi):''});
   }
