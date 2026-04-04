@@ -424,26 +424,41 @@ function sbInc(){
   var date=document.getElementById('ic3').value,desc=document.getElementById('ic4').value.trim()||(IC[cat]?IC[cat].l:'');
   var bv=document.getElementById('ic5').value,bi=bv!==''?parseInt(bv):-1;
   var depRaw=parseFloat(document.getElementById('ic6').value)||0;
-  // 存入金額與收入同幣別，轉換為台幣存入銀行
   var fxRate=D.fx[cur]||1;
+  // 存入台幣金額（用於 income.dep 記錄，顯示用）
   var depTWD=cur==='TWD'?depRaw:Math.round(depRaw*fxRate);
   var dep=Math.min(Math.max(0,depTWD),isNaN(amt)?0:amt);
   if(isNaN(raw)||!date){toast('請填寫金額與日期','r');return;}
   if(eIncI!==null){
     var old=D.incomes[eIncI];
-    if(old.dep>0&&old.depBk!==''){var obi=parseInt(old.depBk);if(!isNaN(obi)&&D.banks[obi])D.banks[obi].amt=Math.max(0,D.banks[obi].amt-old.dep);}
+    if(old.dep>0&&old.depBk!==''){var obi=parseInt(old.depBk);if(!isNaN(obi)&&D.banks[obi]){var obk=D.banks[obi];var subOld=(obk.cur&&obk.cur!=='TWD'&&obk.cur===old.cur&&old.rawDep)?old.rawDep:old.dep;obk.amt=Math.max(0,obk.amt-subOld);}}
     D.incomes[eIncI]=Object.assign({},D.incomes[eIncI],{cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,rawDep:depRaw,depBk:bi>=0?String(bi):''});
   }else{
     D.incomes.push({id:Date.now(),cat:cat,amt:amt,cur:cur,rawAmt:raw,desc:desc,date:date,dep:dep,depBk:bi>=0?String(bi):''});
   }
-  if(dep>0&&bi>=0&&D.banks[bi]){D.banks[bi].amt+=dep;toast('NT$'+dep.toLocaleString()+' 已存入「'+D.banks[bi].name+'」','t');}
+  if(dep>0&&bi>=0&&D.banks[bi]){
+    var bk=D.banks[bi];
+    // 如果帳戶幣別與收入幣別相同，存入原始幣別金額；否則存入台幣
+    var addAmt=(bk.cur&&bk.cur!=='TWD'&&bk.cur===cur)?depRaw:dep;
+    bk.amt+=addAmt;
+    var dispAmt=bk.cur&&bk.cur!=='TWD'?(depRaw.toLocaleString()+' '+cur):('NT$'+dep.toLocaleString());
+    toast(dispAmt+' 已存入「'+bk.name+'」','t');
+  }
   sv();cMo('mInc');bIncF();rInc();rAll();syncQ();
 }
 
 function dInc(id){
   var sid=String(id);
   var inc=D.incomes.find(function(i){return String(i.id)===sid;});
-  if(inc&&inc.dep>0&&inc.depBk!==''){var bi=parseInt(inc.depBk);if(!isNaN(bi)&&D.banks[bi])D.banks[bi].amt=Math.max(0,D.banks[bi].amt-inc.dep);}
+  if(inc&&inc.dep>0&&inc.depBk!==''){
+    var bi=parseInt(inc.depBk);
+    if(!isNaN(bi)&&D.banks[bi]){
+      var bk=D.banks[bi];
+      // 扣回時同樣要判斷幣別
+      var subAmt=(bk.cur&&bk.cur!=='TWD'&&bk.cur===inc.cur&&inc.rawDep)?inc.rawDep:inc.dep;
+      bk.amt=Math.max(0,bk.amt-subAmt);
+    }
+  }
   D.incomes=D.incomes.filter(function(i){return String(i.id)!==sid;});
   sv();bIncF();rInc();rAll();syncQ();
 }
